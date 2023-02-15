@@ -1,0 +1,640 @@
+ <!DOCTYPE tiles-definitions PUBLIC
+"-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN "
+"http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+<tiles-definitions>
+
+ 	<definition name="baseLayout" template="/WEB-INF/bootstrapJsp/payroll.jsp">
+		<put-attribute name="title" value="" />
+		<put-attribute name="header" value="/WEB-INF/bootstrapJsp/header.jsp" />
+		<put-attribute name="sidebar" value="/WEB-INF/bootstrapJsp/SideBar.jsp" />
+		 <put-attribute name="footer" value="/WEB-INF/bootstrapJsp/footer.jsp" /> 
+	</definition> 
+
+	 <definition name="Menu" extends="baseLayout">
+		<put-attribute name="title" value="MAIN MENU" />
+		<put-attribute name="header" value="/WEB-INF/bootstrapJsp/header.jsp" />
+		<put-attribute name="sidebar" value="/WEB-INF/bootstrapJsp/SideBar.jsp" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/UserHome.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/bootstrapJsp/footer.jsp" />
+	</definition>
+
+	<definition name="ConfigurationMenu" extends="baseLayout">
+		<put-attribute name="title" value="Configuration Menu" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+
+	<definition name="AdminMenu" extends="baseLayout">
+		<put-attribute name="title" value="Employee Roles" />
+		<put-attribute name="header" value="/WEB-INF/jsp/AdminMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	<definition name="FileSource" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/FileSource.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	
+	
+	<definition name="MenuConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="Menu Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	
+	<definition name="CompareMenu" extends="baseLayout">
+		<put-attribute name="title" value="Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+	</definition>
+	
+	<definition name="DisputeMenu" extends="baseLayout">
+		<put-attribute name="title" value="Dispute" />
+		<put-attribute name="header" value="/WEB-INF/jsp/DisputeMenu.jsp" />
+	</definition>
+	
+	
+	<definition name="SettlementMenu" extends="baseLayout">
+		<put-attribute name="title" value="Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+	</definition>
+	<definition name="DownloadReports" extends="baseLayout">
+		<put-attribute name="title" value="Download Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DownloadReports.jsp" />
+	</definition>
+	<definition name="Master_chargebk" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/Master_chargebk.jsp" />
+	</definition>
+	<definition name="NetworkFileUpdate" extends="baseLayout">
+		<put-attribute name="title" value="Network File Update" />
+		<put-attribute name="header" value="/WEB-INF/jsp/NetworkFileUpdate.jsp" />
+	</definition>
+	
+
+	<definition name="NetworkFileUpdate" extends="baseLayout">
+		<put-attribute name="title" value="Network File Update" />
+		<put-attribute name="header" value="/WEB-INF/jsp/NetworkFileUpdate.jsp" />
+	</definition>
+	
+
+	<definition name="ReconStatus" extends="baseLayout">
+		<put-attribute name="title" value="Recon Process" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconStatus.jsp" />		
+	</definition>
+		<definition name="ForceMatch" extends="baseLayout">
+		<put-attribute name="title" value="Force Match" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/forceMatch.jsp" />		
+	</definition>
+	
+	<!-- Administration Definitions -->
+	<definition name="UserManager" extends="baseLayout">
+		<put-attribute name="title" value="User Manager" />
+		<!-- <put-attribute name="header" value="/WEB-INF/jsp/AdminMenu.jsp" /> -->
+		<put-attribute name="body" value="/WEB-INF/jsp/UserManager.jsp" />
+	
+	</definition>
+
+	<definition name="RoleManager" extends="baseLayout">
+		<put-attribute name="title" value="Role Manager" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RoleManager.jsp" />
+	</definition>
+	<definition name="Configuration" extends="baseLayout">
+		<put-attribute name="title" value="Configuration File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		 <put-attribute name="body" value="/WEB-INF/jsp/Configuration.jsp" /> 
+	</definition>
+	
+	
+	<definition name="FileConfiguration" extends="baseLayout">
+		<put-attribute name="title" value="Configuration File" />
+		 <put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" /> 
+		 <put-attribute name="body" value="/WEB-INF/jsp/FileConfiguration.jsp" /> 
+	</definition>
+	
+	
+
+	
+	<definition name="ViewFileSource" extends="baseLayout">
+		<put-attribute name="title" value="View File Details" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewFileSource.jsp" />
+	</definition>
+	
+	<definition name="UpdtFileDetails" extends="baseLayout">
+		<put-attribute name="title" value="Update File Details" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UpdtFileDetails.jsp" />		
+	</definition>
+	
+	
+	<definition name="ConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ConfigureType.jsp" />		
+	</definition>
+	<definition name="ViewConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="View Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewConfigureType.jsp" />		
+	</definition>
+	<definition name="CompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="Compare Setup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CompareSetup.jsp" />		
+	</definition>
+	<definition name="ViewCompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="View CompareSetup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewCompareSetup.jsp" />		
+	</definition>
+	<definition name="AutoCompare" extends="baseLayout">
+		<put-attribute name="title" value="Auto Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AutoCompare.jsp" />		
+	</definition>
+	
+	<definition name="ManualUpload" extends="baseLayout">
+		<put-attribute name="title" value="Manual Upload" />
+		
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualUpload.jsp" />		
+	</definition>
+	
+	
+		<definition name="classifyFile" extends="baseLayout">
+		<put-attribute name="title" value="Classify File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/classifyFile.jsp" />		
+	</definition>
+	
+	<definition name="ManualCompare" extends="baseLayout">
+		<put-attribute name="title" value="Manual Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualCompare.jsp" />		
+	</definition>
+	
+	
+	<definition name="ReconProcess" extends="baseLayout">
+		<put-attribute name="title" value="Recon Process" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconProcess.jsp" />		
+	</definition>
+	
+	<definition name="settlementFinalReport" extends="baseLayout">
+		<put-attribute name="title" value="SettlementFinalReport" />
+		<put-attribute name="body" value="/WEB-INF/jsp/settlementFinalReport.jsp" />		
+	</definition>
+	
+	
+	<definition name="SettlementTTUM" extends="baseLayout">
+		<put-attribute name="title" value="SettlementTTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/Settlement_TTUM.jsp" />		
+	</definition>
+	<!-- GlBalance -->
+	
+	<definition name="GlBalance" extends="baseLayout">
+		<put-attribute name="title" value="GlBalance" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GlBalance.jsp" />		
+	</definition>
+	
+	<definition name="ManualCompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="Manual Compare setup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualCompareSetup.jsp" />
+	</definition>
+	
+	
+	<definition name="ManualFile" extends="baseLayout">
+		<put-attribute name="title" value="Manual File Process" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualFile.jsp" />		
+	</definition>
+	
+	
+	
+	<definition name="ReconSettlement" extends="baseLayout">
+		<put-attribute name="title" value="Recon Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconSettlement.jsp" />		
+	</definition>
+	
+	<definition name="UNReconSettlement" extends="baseLayout">
+		<put-attribute name="title" value="UNRecon Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UNReconSettlement.jsp" />		
+	</definition>
+	
+	<definition name="GenerateTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Generate TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateTTUM.jsp" />
+	</definition>
+	
+	<definition name="UploadTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Upload TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UploadTTUM.jsp" />
+	</definition>
+	
+	<definition name="raisechargeback" extends="baseLayout">
+		<put-attribute name="title" value="CHARGEBACK" />
+		<put-attribute name="body" value="/WEB-INF/jsp/raisechargeback.jsp" />
+	</definition>
+	
+	
+			<definition name="raisechargebackdownloadmsg" extends="baseLayout">
+		<put-attribute name="title" value="raisechargebackdownloadmsg" />
+		 <put-attribute name="body" value="/WEB-INF/jsp/raisechargebackdownloadmsg.jsp" /> 
+	</definition>
+	
+		<definition name="rupayoffline" extends="baseLayout">
+		<put-attribute name="title" value="RUPAY-OFFLINE" />
+		<put-attribute name="body" value="/WEB-INF/jsp/rupayoffline.jsp" />
+	</definition>
+	
+	
+	
+	
+	<definition name="SearchData" extends="baseLayout">
+		<put-attribute name="title" value="Search Data" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/searchData.jsp" />
+	</definition>
+	
+	
+	<definition name="ProcessedData" extends="baseLayout">
+		<put-attribute name="title" value="Processed Data" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ProcessedData.jsp" />		
+	</definition>
+	
+	
+	
+	
+	<definition name="Jtable" extends="baseLayout">
+		<put-attribute name="header" value="/WEB-INF/jsp/JtableTest.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	<definition name="NetworkFileUpdate" extends="baseLayout">
+		<put-attribute name="title" value="Download Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NetworkFileUpdate.jsp" />
+	</definition>
+	
+	<definition name="invalidBrowser">
+		<put-attribute name="body" value="/WEB-INF/jsp/invalidBrowser.jsp" />		
+	</definition>
+	<!-- <definition name="gridHelp">
+		<put-attribute name="title" value="Grid Help" />
+		<put-attribute name="header" value="/WEB-INF/jsp/gridHelp.jsp" />
+				
+	</definition>
+	 -->
+	 
+	 <definition name="Gl_balancing" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/Gl_balancing.jsp" />
+	</definition>
+
+<definition name="Master_chargebk" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/Master_chargebk.jsp" />
+	</definition>
+	
+	<definition name="ChargeBack" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/chargeback.jsp" />
+	</definition>
+	
+	<definition name="SearchData" extends="baseLayout">
+		<put-attribute name="title" value="Search Data" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/searchData.jsp" />
+	</definition>
+ 
+ <!-- ADDED BY IN8624 FOR MANUAL ROLLBACK -->
+ <definition name="ManualRollBack" extends="baseLayout">
+		<put-attribute name="title" value="Manual RollBack Process" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualRollBack.jsp" />		
+	</definition>
+	<!-- ADDED BY IN8624 FOR MANUAL KNOCKOFF -->
+ <definition name="ManualKnockoff" extends="baseLayout">
+		<put-attribute name="title" value="Manual Knockoff Process" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualKnockoff.jsp" />		
+	</definition>
+	
+	<!-- ADDED BY IN8624 FOR NFS FILE UPLOAD -->
+ <definition name="NFSSettlementFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="NFS Settlement File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NFSSettlementFileUpload.jsp" />		
+	</definition>
+	
+	<!-- ADDED BY IN8624 FOR NTSL UPLOAD -->
+ <definition name="NTSLFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="NTSL File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NTSLFileUpload.jsp" />		
+	</definition>
+	
+<!-- ADDED BY IN8624 FOR NFS SETTLEMENT processing -->
+ <definition name="GenerateNFSSettlement" extends="baseLayout">
+		<put-attribute name="title" value="Settlement Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateNFSSettlement.jsp" />		
+	</definition>
+	
+<!-- ADDED BY IN8624 FOR NFS SETTLEMENT TTUM processing -->
+ <definition name="NFSSettlementTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Settlement TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NFSSettlementTTUM.jsp" />		
+	</definition>
+<!-- ADDED BY IN8624 FOR INTERCHANGE processing -->
+ <definition name="GenerateNFSInterchange" extends="baseLayout">
+		<put-attribute name="title" value="Interchange Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateNFSInterchange.jsp" />		
+	</definition>
+	
+<!-- ADDED BY IN8624 FOR Adjustment File Upload -->
+ <definition name="AdjustmentFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="Adjustment File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AdjustmentFileUpload.jsp" />		
+	</definition>
+	<!-- ADDED BY IN8624 FOR Settlement Voucher -->
+ <definition name="GenerateNFSSettVoucher" extends="baseLayout">
+		<put-attribute name="title" value="Settlement Voucher Generation" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateNFSSettVoucher.jsp" />		
+	</definition>
+
+<!-- ADDED BY IN8624 FOR Adjustment TTUM-->
+ <definition name="GenerateNFSAdjustmentTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Adjustment TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateNFSAdjustmentTTUM.jsp" />		
+	</definition>
+
+<!-- ADDED BY IN8624 FOR Cooperative bank TTUm-->
+ <definition name="GenerateNFSCooperativeTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Cooperative Bank TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateNFSCooperativeTTUM.jsp" />		
+	</definition>
+	<!-- ADDED BY IN8624 FOR Cashnet Interchange -->
+ <definition name="GenerateCashnetInterchange" extends="baseLayout">
+		<put-attribute name="title" value="Cashnet Interchange" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateCashnetInterchange.jsp" />		
+</definition>
+
+<!-- ADDED BY IN8624 FOR Cashnet Interchange TTUM -->
+ <definition name="GenerateCashnetInterchangeTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Cashnet Interchange" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateCashnetInterchangeTTUM.jsp" />		
+</definition>
+
+<!-- ADDED BY IN8624 FOR Co operative Bank addition-->
+ <definition name="AddCoOperativeBank" extends="baseLayout">
+		<put-attribute name="title" value="Cooperative Bank Addition" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AddCoOperativeBank.jsp" />		
+</definition>
+
+<!-- ADDED BY IN8624 FOR NOdal Sol addition-->
+ <definition name="AddNewSol" extends="baseLayout">
+		<put-attribute name="title" value="Sol Addition" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AddNewSol.jsp" />		
+</definition>
+
+<!-- ADDED BY IN8624 FOR Late reversal TTUM-->
+ <definition name="NFSLateReversalTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Late Reversal TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NFSLateReversalTTUM.jsp" />		
+</definition>
+
+<!-- ADDED BY IN8624 FOR Mastercard File Upload-->
+ <definition name="RefundTTUMMatching" extends="baseLayout">
+		<put-attribute name="title" value="Refund TTUM Matching" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RefundTTUMMatching.jsp" />		
+</definition>
+
+<!-- ADDED BY IN8624 FOR Mastercard File Upload-->
+ <definition name="RefundTTUMGeneration" extends="baseLayout">
+		<put-attribute name="title" value="Refund TTUM Matching" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RefundTTUMGeneration.jsp" />		
+</definition>
+
+<!-- ADDED BY IN8624 FOR Mastercard File Upload-->
+ <definition name="RefundTTUMKnockoff" extends="baseLayout">
+		<put-attribute name="title" value="Refund TTUM Matching" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RefundTTUMKnockoff.jsp" />		
+</definition>
+
+<!-- ADDED BY INT8624 FOR RUPAY SETTLEMENT -->
+	<definition name="RupayFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="Rupay File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RupayFileUpload.jsp" />		
+	</definition>
+	
+	<!-- ADDED BY INT8624 FOR RUPAY SETTLEMENT -->
+	<definition name="RupaySettlementProcess" extends="baseLayout">
+		<put-attribute name="title" value="Rupay Settlement Process" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RupaySettlementProcess.jsp" />		
+	</definition>
+	
+	<!-- ADDED BY INT8624 FOR RUPAY SETTLEMENT TTUM -->
+	<definition name="RupaySettlementProcessTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Rupay Settlement Process" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RupaySettlementProcessTTUM.jsp" />		
+	</definition>
+	
+	<definition name="RupaySettlementFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="rupaySettlementFileUpload1" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RupaySettlementFileUpload.jsp" />		
+	</definition>
+	<definition name="RupaySettlementTtum" extends="baseLayout">
+		<put-attribute name="title" value="Rupay Cooperative Ttum" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RupaySettlementTtum.jsp" />		
+	</definition>
+	
+	<definition name="ReadEPFile" extends="baseLayout">
+		<put-attribute name="title" value="Read EP File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReadEPFile.jsp" />		
+	</definition>
+	
+	<definition name="VisaSettlementProcess" extends="baseLayout">
+		<put-attribute name="title" value="Read EP File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/VisaSettlementProcess.jsp" />		
+	</definition>
+	
+	<definition name="VisaSettlementTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Read EP File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/VisaSettlementTTUM.jsp" />		
+	</definition>
+	
+
+<!-- UNMatched Data TTUM -->
+<definition name="GenerateUnmatchedTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Generate TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateUnmatchedTTUM.jsp" />		
+	</definition>
+
+<!-- FISDOM MODULE -->	
+<definition name="FisdomFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="Fisdom File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/FisdomFileUpload.jsp" />		
+	</definition>	
+
+<definition name="FisdomReconProcess" extends="baseLayout">
+		<put-attribute name="title" value="Fisdom Recon Process" />
+		<put-attribute name="body" value="/WEB-INF/jsp/FisdomReconProcess.jsp" />		
+	</definition>	
+
+
+<definition name="GenerateFisdomTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Fisdom TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateFisdomTTUM.jsp" />		
+	</definition>
+	
+	
+<definition name="GenerateNFSTTUM" extends="baseLayout">
+		<put-attribute name="title" value="NFS TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateNFSTTUM.jsp" />		
+	</definition>	
+	
+<definition name="FullRefundTTUMGeneration" extends="baseLayout">
+		<put-attribute name="title" value="NFS TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/FullRefundTTUMGeneration.jsp" />		
+	</definition>		
+
+<definition name="NFSFeeGST" extends="baseLayout">
+		<put-attribute name="title" value="NFS Fee GST" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NFSFeeGST.jsp" />		
+	</definition>	
+	
+	<definition name="NFSSuspectedTxnReport" extends="baseLayout">
+		<put-attribute name="title" value="NFS Suspected Txn" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NFSSuspectedTxnReport.jsp" />		
+	</definition>
+	
+	<definition name="rupayNetworkAdjust" extends="baseLayout">
+		<put-attribute name="title" value="Rupay Network Adjust" />
+		<put-attribute name="body" value="/WEB-INF/jsp/rupayNetworkAdjust.jsp" />		
+	</definition>	
+	
+	<definition name="GenerateRupayAdjustmentTTUM" extends="baseLayout">
+		<put-attribute name="title" value="NFS TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateRupayAdjustmentTTUM.jsp" />		
+	</definition>
+	
+	<definition name="NCMCFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="NCMC Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NCMCFileUpload.jsp" />		
+	</definition>	
+	
+	
+	<definition name="GenerateRupayInternationalTTUM" extends="baseLayout">
+		<put-attribute name="title" value="International TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateRupayInternationalTTUM.jsp" />		
+	</definition>	
+	
+	<definition name="UploadGlStatement" extends="baseLayout">
+		<put-attribute name="title" value="NFS TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UploadGlStatement.jsp" />		
+	</definition>
+	
+	<definition name="NIHReportDownload" extends="baseLayout">
+		<put-attribute name="title" value="NIH Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NIHReportDownload.jsp" />		
+	</definition>
+	
+	<definition name="GenerateCardToCardTTUM" extends="baseLayout">
+		<put-attribute name="title" value="NIH Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateCardToCardTTUM.jsp" />		
+	</definition>
+	
+	<definition name="CashnetAdjustmentFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="Cashnet Adjustment File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CashnetAdjustmentFileUpload.jsp" />		
+	</definition>	
+	
+	<definition name="GenerateCashnetSettlement" extends="baseLayout">
+		<put-attribute name="title" value="Cashnet Adjustment File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateCashnetSettlement.jsp" />		
+	</definition>	
+	
+	<definition name="DownloadDhanaReports" extends="baseLayout">
+		<put-attribute name="title" value="Cashnet Adjustment File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DownloadDhanaReports.jsp" />		
+	</definition>
+	
+	<definition name="GenerateNFSSettlementTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Cashnet Adjustment File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateNFSSettlementTTUM.jsp" />		
+	</definition>
+	
+	<definition name="GenerateEODReport" extends="baseLayout">
+		<put-attribute name="title" value="Cashnet Adjustment File Upload" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateEODReport.jsp" />		
+	</definition>
+	
+	
+	<definition name="GenerateOneWayReconReport" extends="baseLayout">
+		<put-attribute name="title" value="One Way Recon Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateOneWayReconReport.jsp" />		
+	</definition>
+	
+	
+	<definition name="GenerateVisaUnmatchTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Visa TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateVisaUnmatchTTUM.jsp" />		
+	</definition>
+	
+	<definition name="GenerateNFSUnmatchTTUM" extends="baseLayout">
+		<put-attribute name="title" value="NFS TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateNFSUnmatchTTUM.jsp" />		
+	</definition>
+	
+	<definition name="GenerateCashnetUnmatchTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Cashnet TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateCashnetUnmatchTTUM.jsp" />		
+	</definition>
+	
+	<definition name="GenerateRupayUnmatchTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Visa TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateRupayUnmatchTTUM.jsp" />		
+	</definition>
+	
+	<definition name="CashnetRawRollback" extends="baseLayout">
+		<put-attribute name="title" value="Visa TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CashnetRawRollback.jsp" />		
+	</definition>
+	
+	<definition name="NFSRawRollback" extends="baseLayout">
+		<put-attribute name="title" value="Visa TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NFSRawRollback.jsp" />		
+	</definition>
+	
+	<definition name="NTSLFileRollback" extends="baseLayout">
+		<put-attribute name="title" value="Visa TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NTSLFileRollback.jsp" />		
+	</definition>
+	
+	
+	<definition name="CashnetGLStatement" extends="baseLayout">
+		<put-attribute name="title" value="GL Statement" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CashnetGLStatement.jsp" />		
+	</definition>
+	
+	<definition name="DhanalaxmiSettlement" extends="baseLayout">
+		<put-attribute name="title" value="Settlement" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DhanalaxmiSettlement.jsp" />		
+	</definition>
+	
+	
+	<definition name="VisaRawRollback" extends="baseLayout">
+		<put-attribute name="title" value="RawFile Rollback" />
+		<put-attribute name="body" value="/WEB-INF/jsp/VisaRawRollback.jsp" />		
+	</definition>
+	
+	
+	<definition name="CBSGLExceptionReport" extends="baseLayout">
+		<put-attribute name="title" value="CBS GL Exception Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CBSGLExceptionReport.jsp" />		
+	</definition>
+	
+	<definition name="CashnetGLFileUpload1" extends="baseLayout">
+		<put-attribute name="title" value="CBS GL Exception Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CashnetGLFileUpload1.jsp" />		
+	</definition>
+</tiles-definitions>

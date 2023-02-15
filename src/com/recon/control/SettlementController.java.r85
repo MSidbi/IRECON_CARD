@@ -1,0 +1,632 @@
+package com.recon.control;
+
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.lang.reflect.Array;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.log4j.Logger;
+//import org.apache.poi.hssf.record.formula.TblPtg;
+import org.apache.poi.hssf.util.HSSFColor.TAN;
+import org.apache.poi.util.IOUtils;
+
+import java.io.File;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.recon.model.CompareSetupBean;
+import com.recon.model.LoginBean;
+import com.recon.model.ReconDataJson;
+import com.recon.model.SettlementBean;
+import com.recon.model.SettlementTypeBean;
+import com.recon.model.SettlementTypeJson;
+import com.recon.service.ISettelmentService;
+import com.recon.service.ISourceService;
+import com.recon.util.FileDetailsJson;
+
+@Controller
+public class SettlementController {
+	
+	private static final String ERROR_MSG = "error_msg";
+	private static final String SUCCESS_MSG = "success_msg";
+	private static final Logger logger = Logger.getLogger(SettlementController.class);
+
+	@Autowired ISettelmentService isettelmentservice;
+	@Autowired ISourceService iSourceService;
+	
+	@RequestMapping(value = "Settlement", method = RequestMethod.GET)
+	public ModelAndView Configuration(ModelAndView modelAndView) {
+		modelAndView.setViewName("SettlementMenu");
+		return modelAndView;
+
+	}
+	
+	@RequestMapping(value = "ReconData", method = RequestMethod.GET)
+	public String settlement(ModelAndView modelAndView, Model model,SettlementTypeBean settlementTypeBean,LoginBean loginBean,HttpServletRequest request,HttpServletResponse response) {
+		
+		try{
+			
+			loginBean.setUser_id(((LoginBean) request.getSession().getAttribute("loginBean")).getUser_id().trim());
+		modelAndView.setViewName("ReconSettlement");
+		
+		model.addAttribute("SettlementBean",settlementTypeBean);
+		
+		
+		return "ReconSettlement";
+		}catch (Exception ex){
+			
+			ex.printStackTrace();
+			return "redirect:Login.do";
+		}
+
+	}
+	
+	@RequestMapping(value = "UNReconData", method = RequestMethod.GET)
+	public String UNReconData (ModelAndView modelAndView, Model model,SettlementTypeBean settlementTypeBean,LoginBean loginBean,HttpServletRequest request,HttpServletResponse response) {
+		
+		try{
+			
+		loginBean.setUser_id(((LoginBean) request.getSession().getAttribute("loginBean")).getUser_id().trim());
+		
+		modelAndView.setViewName("ReconSettlement");
+		
+		model.addAttribute("SettlementBean",settlementTypeBean);
+		
+		
+		return "UNReconSettlement";
+		}catch (Exception ex){
+			
+			ex.printStackTrace();
+			return "redirect:Login.do";
+		}
+
+	}
+	
+	//ProcessedData.do
+	
+	@RequestMapping(value = "ProcessedData", method = RequestMethod.GET)
+	public String KnockOffData (ModelAndView modelAndView, Model model,SettlementTypeBean settlementTypeBean,LoginBean loginBean,HttpServletRequest request,HttpServletResponse response) {
+		
+		try{
+			
+		loginBean.setUser_id(((LoginBean) request.getSession().getAttribute("loginBean")).getUser_id().trim());
+		
+		
+		
+		
+		modelAndView.setViewName("ProcessedData");
+		
+		
+		
+		model.addAttribute("SettlementBean",settlementTypeBean);
+		
+		
+		return "ProcessedData";
+		}catch (Exception ex){
+			
+			ex.printStackTrace();
+			return "redirect:Login.do";
+		}
+
+	}
+	
+	
+	
+	
+	@RequestMapping(value="/GetReconData", method = RequestMethod.GET)
+    public String GetReconData(@RequestParam(value="tbl") String table,@RequestParam ("date") String date ,@RequestParam("type") String type,@RequestParam("searchValue") String searchValue
+    		,HttpServletRequest request,LoginBean loginBean,RedirectAttributes redirectAttributes,Model model) throws Exception {
+	
+		
+	 try{
+		 loginBean.setUser_id(((LoginBean) request.getSession().getAttribute("loginBean")).getUser_id().trim());
+		 String column="";
+		/* System.out.println(table);
+		 System.out.println(column);
+		 System.out.println(date);
+			*/
+			
+		 
+			// System.out.println("in GetSettelmentType"+tableName);
+			 
+			 ArrayList<SettlementTypeBean> dataList =  isettelmentservice.getReconData(table.trim(),type.trim(),date.trim(),searchValue.trim());
+			 
+			 System.out.println(column.split(","));
+			 model.addAttribute("table",table.trim());
+			 model.addAttribute("dataList",dataList);
+        return "viewReconData";
+			// return "ViewPWDRepo";
+        
+	 }catch(Exception e){
+		 
+		 logger.error(e.getMessage());
+			redirectAttributes.addFlashAttribute(ERROR_MSG, e.getMessage());
+			return "redirect:Login.do";
+		 
+	 }
+    }
+	
+	@RequestMapping(value="/GetJtableReconData", method = RequestMethod.GET)
+    public String GetJtableReconData(@RequestParam(value="tbl") String table,@RequestParam ("date") String date ,@RequestParam("type") String type,@RequestParam("searchValue") String searchValue
+    		,HttpServletRequest request,LoginBean loginBean,RedirectAttributes redirectAttributes,Model model,HttpSession session) throws Exception {
+	
+		String split_table[]=table.split("_");
+		 
+		 String concat_table=split_table[0]+"_"+split_table[2];
+		
+	 try{
+		 loginBean.setUser_id(((LoginBean) request.getSession().getAttribute("loginBean")).getUser_id().trim());
+		 
+		 session.setAttribute("tbl", table);
+		 session.setAttribute("date", date);
+		 session.setAttribute("type", type);
+		 session.setAttribute("searchValue", searchValue);
+			 
+			 ArrayList<SettlementTypeBean> dataList =  isettelmentservice.getReconData(table.trim(),type.trim(),date.trim(),searchValue.trim());
+			 
+			 
+			 model.addAttribute("table",table.trim());
+			 model.addAttribute("dataList",dataList);
+			 
+			 if(concat_table.trim().equalsIgnoreCase("SETTLEMENT_SWITCH")) {
+				 
+				 return "viewSwitchReconData";
+				 
+			 } if(concat_table.trim().equalsIgnoreCase("SETTLEMENT_CBS")) {
+				 
+				 return "viewCBSReconData";
+				 
+			 }else{
+				 
+				 return "Login.do";
+			 }
+        
+			
+			// return "ViewPWDRepo";
+        
+	 }catch(Exception e){
+		 
+		 logger.error(e.getMessage());
+			redirectAttributes.addFlashAttribute(ERROR_MSG, e.getMessage());
+			return "redirect:Login.do";
+		 
+	 }
+    }
+	
+	@RequestMapping(value="/GetJtableData", method = RequestMethod.POST)
+	@ResponseBody
+    public  ReconDataJson GetJtableData(@ModelAttribute ("settlementTypeBean") SettlementTypeBean settlementTypeBean,  HttpServletRequest request,ReconDataJson dataJson,LoginBean loginBean,int jtStartIndex, int jtPageSize,RedirectAttributes redirectAttributes,Model model,HttpSession session) throws Exception {
+	 try{
+		 
+		 loginBean.setUser_id(((LoginBean) request.getSession().getAttribute("loginBean")).getUser_id().trim());
+		 HashMap<String, Object> JSONROOT = new HashMap<String, Object>();
+         Gson gson = new GsonBuilder().setPrettyPrinting().create();
+		 String table,searchValue,type,date;
+		 table=(String) session.getAttribute("tbl");
+		 date=(String) session.getAttribute("date");
+		 type= (String) session.getAttribute("type");
+		 searchValue=(String) session.getAttribute("searchValue");
+		
+			 
+			 ArrayList<SettlementTypeBean> dataList =  isettelmentservice.getChngReconData(table.trim(),type.trim(),date.trim(),searchValue.trim(), jtStartIndex, jtPageSize);
+			 JSONROOT.put("Records", dataList);
+			 
+			 
+			 
+			 String jsonArray = gson.toJson(JSONROOT);
+			 
+			 int totalRecordcount = isettelmentservice.getReconDataCount(table.trim(), type.trim(), date.trim(), searchValue.trim());
+			 
+	       //  System.out.println(totalRecordcount);
+	         dataJson.setParams("OK", dataList,totalRecordcount);
+	         dataJson.setTotalRecordCount( totalRecordcount);
+      
+			// return "ViewPWDRepo";
+        
+	 }catch(Exception e){
+		 
+		 logger.error(e.getMessage());
+		 dataJson.setParams("ERROR", e.getMessage());
+		 
+	 }
+	 return dataJson;
+    }
+	
+	//editsave
+
+	@RequestMapping(value="/editsave", method = RequestMethod.POST)
+    public ResponseEntity<Integer> editsave(@ModelAttribute ("settlementTypeBean") SettlementTypeBean settlementTypeBean,
+    		HttpServletRequest request,LoginBean loginBean,RedirectAttributes redirectAttributes,Model model) throws Exception {
+	
+		 int result=200;
+	 try{
+		 
+		/* System.out.println("pan:"+settlementTypeBean.getPan());
+		 System.out.println("pan:"+settlementTypeBean.getrEMARKS());
+		 System.out.println(settlementTypeBean.gettERMID());
+		 System.out.println(settlementTypeBean.gettRACE());
+		 System.out.println(settlementTypeBean.getSetltbl());*/
+		 
+		  result = isettelmentservice.updateRecord(settlementTypeBean);
+	//	System.out.println(request.getParameter("data"));
+		 loginBean.setUser_id(((LoginBean) request.getSession().getAttribute("loginBean")).getUser_id().trim());
+		 result = isettelmentservice.updateRecord(settlementTypeBean);
+		
+        return new ResponseEntity<>(result, HttpStatus.OK);
+			// return "ViewPWDRepo";
+        
+	 }catch(Exception e){
+		 
+		 logger.error(e.getMessage());
+			redirectAttributes.addFlashAttribute(ERROR_MSG, e.getMessage());
+			 return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+		 
+	 }
+    }
+	
+	
+	@RequestMapping(value="GenerateReport" ,method=RequestMethod.POST)
+	public String  compareData(@ModelAttribute("SettlementBean") SettlementTypeBean typeBean,
+			 RedirectAttributes redirectAttributes,HttpSession httpsession,Model model,HttpServletRequest request,HttpServletResponse response)
+	{
+		/* table=(String) session.getAttribute("tbl");
+		 date=(String) session.getAttribute("date");
+		 type= (String) session.getAttribute("type");*/
+		
+		
+		try
+		{
+			
+		//	List<SettlementTypeBean> generatettumObj = isettelmentservice.getReconData(typeBean.getSetltbl().trim(),typeBean.getDataType().trim(),typeBean.getDatepicker().trim(),typeBean.getSearchValue());
+			/*
+			model.addAttribute("processed_data",generatettumObj);
+			model.addAttribute("table",typeBean.getSetltbl().trim());
+			model.addAttribute("type", typeBean.getDataType().trim());*/
+			
+			List<List<String>> DATA = new ArrayList<>();
+			
+			DATA = isettelmentservice.getReconData1(typeBean.getSetltbl().trim(),typeBean.getDataType().trim(),typeBean.getDatepicker().trim(),typeBean.getSearchValue());
+			
+			String stFileName = isettelmentservice.getFileName(typeBean.getSetltbl());
+			
+			/*model.addAttribute("filename", typeBean.getDataType().trim());*/
+		
+			//List<String> stfilename = new ArrayList<>();
+			String filename = stFileName+"-"+typeBean.getDataType().trim()+"_"+typeBean.getDatepicker().trim();
+			//stfilename.add(filename);
+			
+			Map<String, Object> map = new HashMap<String, Object>();
+			
+			model.addAttribute("filename",filename);
+			
+			model.addAttribute("DATA", DATA);
+						
+			//isettelmentservice.buildExcelDocument1(map,filename,request,response);
+			return "generateExcelReport";
+			
+		}
+		catch(Exception e)
+		{
+
+			return "redirect:Login.do";
+		}
+	}
+	
+	
+	@RequestMapping(value="/GetReconDataCount", method = RequestMethod.POST)
+	 @ResponseBody
+	
+    public int GetReconDataCount(@RequestParam(value="tbl") String table,@RequestParam ("date") String date ,@RequestParam("type") String type,@RequestParam("searchValue") String searchValue
+    		,HttpServletRequest request,LoginBean loginBean,RedirectAttributes redirectAttributes,Model model) throws Exception {
+	
+		 int count=0;
+		
+		 try{
+			 //loginBean.setTable_name(table);
+			 loginBean.setUser_id(((LoginBean) request.getSession().getAttribute("loginBean")).getUser_id().trim());
+			 String column="";
+			 /*System.out.println(table);
+		 	   System.out.println(column);
+		 	   System.out.println(date);*/
+
+
+			 count =  isettelmentservice.getReconDataCount(table.trim(),type.trim(),date.trim(),searchValue.trim());
+
+
+			 return count;
+			 // return "ViewPWDRepo";
+
+		 }catch(Exception e){
+		 
+		 logger.error(e.getMessage());
+			redirectAttributes.addFlashAttribute(ERROR_MSG, e.getMessage());
+			return count;
+		 
+	 }
+    }
+	
+	
+	
+	
+	
+	
+	
+	@RequestMapping(value = "/GetColumnList", method = RequestMethod.POST)
+	 @ResponseBody
+	 public ArrayList<String> GetColumnList (@RequestParam("tableName")String tableName){
+		
+		 
+	//	 System.out.println("in GetSettelmentType"+tableName);
+		 
+		 ArrayList<String> colList = isettelmentservice.getColumnList(tableName);
+		 
+		 return colList;
+		 
+		 
+		 
+	 }
+	
+	 @RequestMapping(value = "/GetSettelmentType", method = RequestMethod.POST)
+	 @ResponseBody
+	 public ArrayList<String> GetSettelmentType (@RequestParam("tableName")String tableName){
+		
+		 
+	//	 System.out.println("in GetSettelmentType"+tableName);
+		 
+		 ArrayList<String> typeList = isettelmentservice.gettype(tableName);
+		 
+		 return typeList;
+		 
+		 
+		 
+	 }
+	 
+	 @RequestMapping(value = "/GetSettelmentTypedtls",produces = { "application/json" }, method = RequestMethod.POST)
+	
+	 public @ResponseBody SettlementTypeJson GetSettelmentTypesetails (SettlementTypeJson settlementTypeJson){
+		 /*@RequestParam("action")String action,@RequestParam("tablename")String tablename  ,*/ 
+		//@RequestParam("action")String action,@RequestParam("tablename")String tablename  ,
+		 String action= "CIA GL" ,tablename="settlement_cbs"; 
+		/* System.out.println("in GetSettelmentType"+action);
+		 System.out.println("in GetSettelmentType"+tablename);*/
+		 
+		 
+		 try {
+	      	 HashMap<String, Object> JSONROOT = new HashMap<String, Object>();
+	             Gson gson = new GsonBuilder().setPrettyPrinting().create();
+	            List<SettlementTypeBean> list=isettelmentservice.getSettlmentType(action.trim(), tablename.trim());
+	           
+	         JSONROOT.put("Records", list);
+
+	        // Convert Java Object to Json
+	         String jsonArray = gson.toJson(JSONROOT);
+	     /*    System.out.println(jsonArray);*/
+	         settlementTypeJson.setParams("OK", list);
+	         System.out.println(settlementTypeJson);
+	         } catch (Exception e) {
+	        	 settlementTypeJson.setParams("ERROR", e.getMessage());
+	        }
+	        return settlementTypeJson;
+	   }
+		 
+//ADDED BY INT5779 AS ON 14TH MARCH 2018 FOR  DOWNLOADING REPORTS
+	 @RequestMapping(value = "DownloadReports", method = RequestMethod.GET)
+	 public ModelAndView getdownloadPage(ModelAndView modelAndView,SettlementBean settlementBean,@RequestParam("category")String category) throws Exception
+	 {
+		 List<String> subcat = new ArrayList<>();
+		 
+		 System.out.println("in GetHeaderList"+category);
+		 
+         subcat = iSourceService.getSubcategories(category);
+		
+         modelAndView.addObject("category", category);
+		modelAndView.addObject("subcategory",subcat );
+		 
+		modelAndView.addObject("SettlementBean", settlementBean);
+		 	modelAndView.setViewName("DownloadReports");
+		 	
+		 	return modelAndView;
+		 
+	 }
+	 
+	/* @RequestMapping(value = "DownloadReports", method = RequestMethod.POST)
+	 @ResponseBody
+	// public void downloadReports(@ModelAttribute("SettlementBean")SettlementBean settlementBean)
+	 public  String downloadReports (@RequestParam("category")String category,FileDetailsJson dataJson, ModelAndView modelAndView,CompareSetupBean setupBean,HttpSession httpSession,
+				@RequestParam("filedate") String filedate,@RequestParam("subCat") String subCat,@RequestParam("path") String stPath )
+	 {
+		
+	 
+		 SettlementBean settlementBean = new SettlementBean();
+		 settlementBean.setCategory(category);
+		 settlementBean.setStsubCategory(subCat);
+		 settlementBean.setDatepicker(filedate);
+		 
+		 String userHome1 = System.getProperty("user.home");
+		 userHome1 = userHome1+"\\Desktop\\Reports";
+		 String userHome=userHome1.replace("/", "\\");
+		 
+		 settlementBean.setStPath(userHome);
+		 
+		// settlementBean.setStPath(stPath);
+		 try
+		 {
+
+
+			 //1.CHECK WHETHER RECON HAS BEEN PROCESSED FOR THE SELECTED DATE
+			// System.out.println("HELLO");
+			 if(!subCat.equals("-"))
+			 {
+				 settlementBean.setStMergerCategory(settlementBean.getCategory()+"_"+settlementBean.getStsubCategory().substring(0, 3));
+			 }
+			 else
+				 settlementBean.setStMergerCategory(settlementBean.getCategory());
+			 
+			 //check whether recon has been performed for that day
+			 boolean check_process = isettelmentservice.checkfileprocessed(settlementBean);
+			 
+			 if(check_process)
+			 {
+				 isettelmentservice.generate_Reports(settlementBean);
+				 return "Reports downloaded.";
+			 }
+			 else
+			 {
+				 return "Recon not processed for selected date";
+			 }
+			 
+		 }
+		 catch(Exception e)
+		 {
+			 System.out.println("Exception in downloadReports "+e);
+			 return e.getMessage();
+		 }
+		
+		 
+	 }	
+	 		 */
+	 		
+	 //CHECK WHETHER RECON HAS BEEN PROCESSED FOR SELECTED DATE
+	 @RequestMapping(value = "checkfileprocessed", method = RequestMethod.POST)
+	 @ResponseBody
+	 public String checkfileProcess(@RequestParam("category")String category,FileDetailsJson dataJson, ModelAndView modelAndView,CompareSetupBean setupBean,HttpSession httpSession,
+				@RequestParam("filedate") String filedate,@RequestParam("subCat") String subCat,@RequestParam("path") String stPath ,HttpServletResponse response,HttpServletRequest request)
+	 {
+		 try
+		 {
+			 SettlementBean settlementBean = new SettlementBean();
+			 settlementBean.setCategory(category);
+			 settlementBean.setStsubCategory(subCat);
+			 settlementBean.setDatepicker(filedate);
+			 boolean check_process = isettelmentservice.checkfileprocessed(settlementBean);
+			 if(check_process)
+			 {
+				 return "success";
+			 }
+			 else
+				 return "Recon not processed for selected date";
+		 }
+		 catch(Exception e)
+		 {
+			 return "Exception";
+		 }
+	 }
+	 		 
+	 @RequestMapping(value = "DownloadReports", method = RequestMethod.POST)
+	 	// public void downloadReports(@ModelAttribute("SettlementBean")SettlementBean settlementBean)
+	 @ResponseBody
+	 /*public  void downloadReports (@RequestParam("category")String category,FileDetailsJson dataJson, ModelAndView modelAndView,CompareSetupBean setupBean,HttpSession httpSession,
+				@RequestParam("filedate") String filedate,@RequestParam("subCat") String subCat,@RequestParam("path") String stPath ,HttpServletResponse response,HttpServletRequest request)*/
+	 public void downloadReports (@ModelAttribute("SettlementBean")SettlementBean SettlementBean,HttpServletResponse response,HttpServletRequest request,RedirectAttributes redirectAttributes)
+	 {
+		
+		 ServletContext context = request.getServletContext();
+		// SettlementBean settlementBean = new SettlementBean();
+		 /*settlementBean.setCategory(category);
+		 settlementBean.setStsubCategory(subCat);
+		 settlementBean.setDatepicker(filedate);*/
+		 
+		/* String userHome1 = System.getProperty("user.home");
+		 userHome1 = userHome1+"\\Desktop\\Reports";
+		 String userHome=userHome1.replace("/", "\\");
+		 
+		 SettlementBean.setStPath(userHome);*/
+		 
+		// settlementBean.setStPath(stPath);
+		 try
+		 {
+
+			//DELETING FILES FROM DRIVE
+			 SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy");
+			 	java.util.Date date=sdf.parse(SettlementBean.getDatepicker());
+
+	           sdf=new SimpleDateFormat("dd-MM-yyyy");
+	          
+	           String stnewDate = sdf.format(date);
+				//isettelmentservice.DeleteFiles(userHome+"\\"+stnewDate);
+	           isettelmentservice.DeleteFiles(SettlementBean.getStPath()+"\\"+stnewDate);
+	           String stpath = SettlementBean.getStPath()+"\\"+stnewDate;
+	        		  
+
+			 //1.CHECK WHETHER RECON HAS BEEN PROCESSED FOR THE SELECTED DATE
+			// System.out.println("HELLO");
+			 if(!SettlementBean.getStsubCategory().equals("-"))
+			 {
+				 SettlementBean.setStMergerCategory(SettlementBean.getCategory()+"_"+SettlementBean.getStsubCategory().substring(0, 3));
+			 }
+			 else
+				 SettlementBean.setStMergerCategory(SettlementBean.getCategory());
+			 
+
+			 isettelmentservice.generate_Reports(SettlementBean);
+				 
+				 //added by int5779 for downloading zip
+				 
+		           
+				 String stFilename = SettlementBean.getStMergerCategory();
+				 //File file = new File(userHome+"\\"+stnewDate+"\\"+stFilename+".zip");
+				 File file = new File(SettlementBean.getStPath()+".zip");
+				 FileInputStream inputstream = new FileInputStream(file);
+				 response.setContentLength((int) file.length());
+				response.setContentType(context.getMimeType(stFilename+".zip"));
+				 
+				/** Set Response header*/
+				String headerKey = "Content-Disposition";
+				String headerValue = String.format("attachment; filename=\"%s\"", file.getName());
+				response.setHeader(headerKey, headerValue);
+
+				/** Write response.*/
+				OutputStream outStream = response.getOutputStream();
+				IOUtils.copy(inputstream, outStream);
+				
+				response.flushBuffer();
+				
+				
+				//DELETING FILES FROM DRIVE
+				//isettelmentservice.DeleteFiles(userHome+"\\"+stnewDate);
+				//isettelmentservice.DeleteFiles(SettlementBean.getStPath()+"\\"+stnewDate);
+				
+				isettelmentservice.DeleteFiles(stpath);
+				 
+			 
+			
+			
+		 }
+		 catch(Exception e)
+		 {
+			 System.out.println("Exception in downloadReports "+e);
+			// return e.getMessage();
+			 redirectAttributes.addFlashAttribute(ERROR_MSG, e.getMessage());
+		 }
+		
+		 
+	 }	
+		 
+//ENDS HERE		 
+		 
+	 
+}

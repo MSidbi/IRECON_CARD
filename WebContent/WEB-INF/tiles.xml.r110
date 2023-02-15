@@ -1,0 +1,785 @@
+ <!DOCTYPE tiles-definitions PUBLIC
+"-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN "
+"http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+<tiles-definitions>
+
+ 	<definition name="baseLayout" template="/WEB-INF/bootstrapJsp/payroll.jsp">
+		<put-attribute name="title" value="" />
+		<put-attribute name="header" value="/WEB-INF/bootstrapJsp/header.jsp" />
+		<put-attribute name="sidebar" value="/WEB-INF/bootstrapJsp/SideBar.jsp" />
+		 <put-attribute name="footer" value="/WEB-INF/bootstrapJsp/footer.jsp" /> 
+	</definition> 
+
+	<!--  <definition name="Login" extends="baseLayout" > <put-attribute name="title" 
+		value="Login Page" /> <put-attribute name="header" value="" /> <put-attribute 
+		name="body" value="/WEB-INF/jsp/Login.jsp" /> </definition>  -->
+
+	 <definition name="Menu" extends="baseLayout">
+		<put-attribute name="title" value="MAIN MENU" />
+		<put-attribute name="header" value="/WEB-INF/bootstrapJsp/header.jsp" />
+		<put-attribute name="sidebar" value="/WEB-INF/bootstrapJsp/SideBar.jsp" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/UserHome.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/bootstrapJsp/footer.jsp" />
+	</definition>
+	
+	
+	<!-- <definition name="baseLayout" template="/WEB-INF/jsp/payroll.jsp">
+		<put-attribute name="title" value="" />
+		<put-attribute name="header" value="/WEB-INF/jsp/header.jsp" />
+		<put-attribute name="sidebar" value="/WEB-INF/jsp/SideBar.jsp" />
+		<put-attribute name="body" value="" />
+		<put-attribute name="footer" value="/WEB-INF/jsp/footer.jsp" />
+	</definition> -->
+
+<!--	<definition name="MasterMenu" extends="baseLayout">
+		<put-attribute name="title" value="Master Menu" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+
+	<definition name="TransactionMenu" extends="baseLayout">
+		<put-attribute name="title" value="Transaction Menu" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>-->
+
+	<definition name="ConfigurationMenu" extends="baseLayout">
+		<put-attribute name="title" value="Configuration Menu" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+
+<!--	<definition name="ReportMenu" extends="baseLayout">
+		<put-attribute name="title" value="Report Menu" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>-->
+
+	<definition name="AdminMenu" extends="baseLayout">
+		<put-attribute name="title" value="Employee Roles" />
+		<put-attribute name="header" value="/WEB-INF/jsp/AdminMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	<definition name="FileSource" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/FileSource.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	<definition name="MenuConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="Menu Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	
+	<definition name="CompareMenu" extends="baseLayout">
+		<put-attribute name="title" value="Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+	</definition>
+	
+	<definition name="DisputeMenu" extends="baseLayout">
+		<put-attribute name="title" value="Dispute" />
+		<put-attribute name="header" value="/WEB-INF/jsp/DisputeMenu.jsp" />
+	</definition>
+	
+	
+	<definition name="SettlementMenu" extends="baseLayout">
+		<put-attribute name="title" value="Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+	</definition>
+	<definition name="DownloadReports" extends="baseLayout">
+		<put-attribute name="title" value="Download Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DownloadReports.jsp" />
+	</definition>
+	<definition name="NetworkFileUpdate" extends="baseLayout">
+		<put-attribute name="title" value="Network File Update" />
+		<put-attribute name="header" value="/WEB-INF/jsp/NetworkFileUpdate.jsp" />
+	</definition>
+	
+	<definition name="ReconStatus" extends="baseLayout">
+		<put-attribute name="title" value="Recon Process" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconStatus.jsp" />		
+	</definition>
+		<definition name="ForceMatch" extends="baseLayout">
+		<put-attribute name="title" value="Force Match" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/forceMatch.jsp" />		
+	</definition>
+	
+
+<!-- 	End of Main Menu -->
+
+	<!-- <definition name="AddEmployee" extends="baseLayout">
+		<put-attribute name="title" value="Add Employee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AddEmployee.jsp" />
+	</definition>
+
+	<definition name="ModifyEmployee" extends="baseLayout">
+		<put-attribute name="title" value="Modify Employee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyEmployee.jsp" />
+	</definition>
+
+	<definition name="ModifyEmployeeList" extends="baseLayout">
+		<put-attribute name="title" value="Modify Employee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyEmployeeList.jsp" />
+	</definition>
+
+	<definition name="ModifyEmployeeDetail" extends="baseLayout">
+		<put-attribute name="title" value="Modify Employee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyEmployeeDetail.jsp" />
+	</definition>
+
+	<definition name="ViewEmployee" extends="baseLayout">
+		<put-attribute name="title" value="View Employee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewEmployee.jsp" />
+	</definition>
+
+	<definition name="ViewEmployeeList" extends="baseLayout">
+		<put-attribute name="title" value="View Employee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewEmployeeList.jsp" />
+	</definition>
+
+	<definition name="ViewEmployeeDetail" extends="baseLayout">
+		<put-attribute name="title" value="View Employee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewEmployeeDetail.jsp" />
+	</definition>
+
+	<definition name="AddNominee" extends="baseLayout">
+		<put-attribute name="title" value="Add Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AddNominee.jsp" />
+	</definition>
+
+	<definition name="ModifyNominee" extends="baseLayout">
+		<put-attribute name="title" value="Modify Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyNominee.jsp" />
+	</definition>
+
+	<definition name="ModifyNomineeList" extends="baseLayout">
+		<put-attribute name="title" value="Modify Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyNomineeList.jsp" />
+	</definition>
+
+	<definition name="ModifyNomineeDetail" extends="baseLayout">
+		<put-attribute name="title" value="Modify Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyNomineeDetail.jsp" />
+	</definition>
+
+	<definition name="ViewNominee" extends="baseLayout">
+		<put-attribute name="title" value="View Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewNominee.jsp" />
+	</definition>
+
+	<definition name="ViewNomineeList" extends="baseLayout">
+		<put-attribute name="title" value="View Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewNomineeList.jsp" />
+	</definition>
+
+	<definition name="ViewNomineeDetail" extends="baseLayout">
+		<put-attribute name="title" value="View Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewNomineeDetail.jsp" />
+	</definition>
+
+	<definition name="ViewOffice" extends="baseLayout">
+		<put-attribute name="title" value="Office Master" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewOffice.jsp" />
+	</definition>
+
+	<definition name="ViewLoanMaster" extends="baseLayout">
+		<put-attribute name="title" value="Loan Master" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewLoanMaster.jsp" />
+	</definition>
+
+	<definition name="ViewDues" extends="baseLayout">
+		<put-attribute name="title" value="Dues Master" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewDues.jsp" />
+	</definition>
+
+	Transaction Menu
+
+	<definition name="AddContribution" extends="baseLayout">
+		<put-attribute name="title" value="Add Contribution" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AddContribution.jsp" />
+	</definition>
+
+	<definition name="ModifyContribution" extends="baseLayout">
+		<put-attribute name="title" value="Modify Contribution" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyContribution.jsp" />
+	</definition>
+
+	<definition name="ModifyContributionList" extends="baseLayout">
+		<put-attribute name="title" value="Modify Contribution" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyContributionList.jsp" />
+	</definition>
+
+	<definition name="ModifyContributionDetail" extends="baseLayout">
+		<put-attribute name="title" value="Modify Contribution" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyContributionDetail.jsp" />
+	</definition>
+
+	<definition name="ViewContribution" extends="baseLayout">
+		<put-attribute name="title" value="ontribution" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewContribution.jsp" />
+	</definition>
+
+	<definition name="ViewContributionList" extends="baseLayout">
+		<put-attribute name="title" value="View Contribution" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewContributionList.jsp" />
+	</definition>
+
+	<definition name="ViewContributionDetail" extends="baseLayout">
+		<put-attribute name="title" value="View Contribution" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewContributionDetail.jsp" />
+	</definition>
+
+	<definition name="AddLoan" extends="baseLayout">
+		<put-attribute name="title" value="Add Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AddLoan.jsp" />
+	</definition>
+
+	<definition name="ModifyLoan" extends="baseLayout">
+		<put-attribute name="title" value="Modify Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyLoan.jsp" />
+	</definition>
+
+	<definition name="ModifyLoanList" extends="baseLayout">
+		<put-attribute name="title" value="Modify Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyLoanList.jsp" />
+	</definition>
+
+	<definition name="ModifyLoanDetail" extends="baseLayout">
+		<put-attribute name="title" value="Modify Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyLoanDetail.jsp" />
+	</definition>
+
+	<definition name="ViewLoan" extends="baseLayout">
+		<put-attribute name="title" value="View Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewLoan.jsp" />
+	</definition>
+
+	<definition name="ViewLoanList" extends="baseLayout">
+		<put-attribute name="title" value="View Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewLoanList.jsp" />
+	</definition>
+
+	<definition name="ViewLoanDetail" extends="baseLayout">
+		<put-attribute name="title" value="View Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewLoanDetail.jsp" />
+	</definition>
+
+	<definition name="DisburseLoan" extends="baseLayout">
+		<put-attribute name="title" value="Disburse Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DisburseLoan.jsp" />
+	</definition>
+
+	<definition name="DisburseLoanList" extends="baseLayout">
+		<put-attribute name="title" value="Disburse Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DisburseLoanList.jsp" />
+	</definition>
+
+	<definition name="DisburseLoanDetail" extends="baseLayout">
+		<put-attribute name="title" value="Disburse Loan" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DisburseLoanDetail.jsp" />
+	</definition>
+
+	<definition name="AddWithdrawal" extends="baseLayout">
+		<put-attribute name="title" value="Add Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AddWithdrawal.jsp" />
+	</definition>
+
+	<definition name="ModifyWithdrawal" extends="baseLayout">
+		<put-attribute name="title" value="Modify Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyWithdrawal.jsp" />
+	</definition>
+
+	<definition name="ModifyWithdrawalList" extends="baseLayout">
+		<put-attribute name="title" value="Modify Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyWithdrawalList.jsp" />
+	</definition>
+
+	<definition name="ModifyWithdrawalDetail" extends="baseLayout">
+		<put-attribute name="title" value="Modify Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ModifyWithdrawalDetail.jsp" />
+	</definition>
+
+	<definition name="ViewWithdrawal" extends="baseLayout">
+		<put-attribute name="title" value="View Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewWithdrawal.jsp" />
+	</definition>
+
+	<definition name="ViewWithdrawalList" extends="baseLayout">
+		<put-attribute name="title" value="View Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewWithdrawalList.jsp" />
+	</definition>
+
+	<definition name="ViewWithdrawalDetail" extends="baseLayout">
+		<put-attribute name="title" value="View Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewWithdrawalDetail.jsp" />
+	</definition>
+
+	<definition name="DisburseWithdrawal" extends="baseLayout">
+		<put-attribute name="title" value="Disburse Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DisburseWithdrawal.jsp" />
+	</definition>
+
+	<definition name="DisburseWithdrawalDetail" extends="baseLayout">
+		<put-attribute name="title" value="Disburse Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DisburseWithdrawalDetail.jsp" />
+	</definition>
+
+	<definition name="AdvanceToWithdrawal" extends="baseLayout">
+		<put-attribute name="title" value="Advance To Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AdvanceToWithdrawal.jsp" />
+	</definition>
+
+	<definition name="AdvanceToWithdrawalDetail" extends="baseLayout">
+		<put-attribute name="title" value="Advance To Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AdvanceToWithdrawalDetail.jsp" />
+	</definition>
+
+	<definition name="AdvanceToWithdrawalList" extends="baseLayout">
+		<put-attribute name="title" value="Advance To Withdrawal" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AdvanceToWithdrawalList.jsp" />
+	</definition>
+
+	<definition name="CommitTransaction" extends="baseLayout">
+		<put-attribute name="title" value="Commit Transaction" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CommitTransaction.jsp" />
+	</definition>
+
+	<definition name="CommitTransactionDetail" extends="baseLayout">
+		<put-attribute name="title" value="Commit Transaction" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CommitTransactionDetail.jsp" />
+	</definition>
+	
+	added by BHAGYASHREE int5779 for adding new menu for Checker concept (Add Contribution checker)  
+	It checks the def name and page_url in db to redirect to the jsp and also checks the name with the request mapping in any of the controller
+	
+	<definition name="ContributionValidation" extends="baseLayout">
+		<put-attribute name="title" value="Commit Transaction" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ContributionValidation.jsp" />
+	</definition>
+	<definition name="DisbursementValidation" extends="baseLayout">
+		<put-attribute name="title" value="Commit Transaction" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DisbursementValidation.jsp" />
+	</definition>
+	<definition name="LoanValidation" extends="baseLayout">
+		<put-attribute name="title" value="Commit Transaction" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/LoanValidation.jsp" />
+	</definition>
+	<definition name="AdvcToWithdrawalValidation" extends="baseLayout">
+		<put-attribute name="title" value="Advance To Withdrawal Validation" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AdvcToWithdrawalValidation.jsp" />
+	</definition>
+	<definition name="LoanOutstandingReport" extends="baseLayout">
+		<put-attribute name="title" value="Loan OutStanding Report" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/LoanOutstandingReport.jsp" />
+	</definition>
+	<definition name="LoanDisbursementReport" extends="baseLayout">
+		<put-attribute name="title" value="Loan Disbursement Report" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/LoanDisbursementReport.jsp" />
+	</definition>
+	<definition name="SanctionNote" extends="baseLayout">
+		<put-attribute name="title" value="Sanction Note" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/SanctionNote.jsp" />
+	</definition>
+	<definition name="SanctionNoteDetail" extends="baseLayout">
+		<put-attribute name="title" value="Sanction Note Detail" />
+		<put-attribute name="title" value="Sanction Note Detail" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/SanctionNoteDetail.jsp" />
+	</definition>
+	<definition name="SavedSanctionNoteDetail" extends="baseLayout">
+		<put-attribute name="title" value="Sanction Note Detail" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/SavedSanctionNoteDetail.jsp" />
+	</definition>
+	<definition name="DAFView" extends="baseLayout">
+		<put-attribute name="title" value="DAF Master" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DAFView.jsp" />
+	</definition>
+	<definition name="DAFViewDetail" extends="baseLayout">
+		<put-attribute name="title" value="DAF Master" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DAFViewDetail.jsp" />
+	</definition>
+	<definition name="NPSReport" extends="baseLayout">
+		<put-attribute name="title" value="NPS Report" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NPSReport.jsp" />
+	</definition>
+	<definition name="EmployeeOutStanding" extends="baseLayout">
+		<put-attribute name="title" value="Advance To Withdrawal Validation" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/EmployeeOutStanding.jsp" />
+	</definition>
+	<definition name="NomineeValidation" extends="baseLayout">
+		<put-attribute name="title" value="Nominee Validation" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NomineeValidation.jsp" />
+	</definition>
+	<definition name="DeleteNomineeValidation" extends="baseLayout">
+		<put-attribute name="title" value="Nominee Validation" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DeleteNomineeValidation.jsp" />
+	</definition>
+	<definition name="NPSFileUpload" extends="baseLayout">
+		<put-attribute name="title" value="NPS Upload" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NPSFileUpload.jsp" />
+	</definition>
+	<definition name="NPSUploadValidation" extends="baseLayout">
+		<put-attribute name="title" value="NPS Validation" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NPSUploadValidation.jsp" />
+	</definition>
+	<definition name="MonthlyLoadValidation" extends="baseLayout">
+		<put-attribute name="title" value="MonthlyLoad Validation" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/MonthlyLoadValidation.jsp" />
+	</definition>
+	<definition name="ProvisionalValidation" extends="baseLayout">
+		<put-attribute name="title" value="MonthlyLoad Validation" />
+		<put-attribute name="header" value="/WEB-INF/jsp/TransactionMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ProvisionalValidation.jsp" />
+	</definition>
+	<definition name="DeleteNominee" extends="baseLayout">
+		<put-attribute name="title" value="Delete Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DeleteNominee.jsp" />
+	</definition>
+	<definition name="DeleteNomineeDetail" extends="baseLayout">
+		<put-attribute name="title" value="Delete Nominee Details" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DeleteNomineeDetail.jsp" />
+	</definition>
+	<definition name="DeleteNomineeList" extends="baseLayout">
+		<put-attribute name="title" value="Delete Nominee List" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DeleteNomineeList.jsp" />
+	</definition>
+	<definition name="AddNomineeList" extends="baseLayout">
+		<put-attribute name="title" value="Add Nominee" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MasterMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AddNomineeList.jsp" />
+	</definition>
+	
+	ends here 
+
+	Processing Menu
+	<definition name="MonthlyDataLoad" extends="baseLayout">
+		<put-attribute name="title" value="Monthly Data Load" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ProcessMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/MonthlyDataLoad.jsp" />
+	</definition>
+
+	<definition name="MonthlyDataLoadDetail" extends="baseLayout">
+		<put-attribute name="title" value="Monthly Data Load" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ProcessMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/MonthlyDataLoadDetail.jsp" />
+	</definition>
+
+	<definition name="InterestGeneration" extends="baseLayout">
+		<put-attribute name="title" value="Interest Generation" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ProcessMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/InterestGeneration.jsp" />
+	</definition>
+
+	<definition name="ProvisionalInterest" extends="baseLayout">
+		<put-attribute name="title" value="Provisional Interest" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ProcessMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ProvisionalInterest.jsp" />
+	</definition>
+
+	<definition name="ProvisionalInterestDetail" extends="baseLayout">
+		<put-attribute name="title" value="Provisional Interest" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ProcessMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ProvisionalInterestDetail.jsp" />
+	</definition>
+
+	<definition name="HalfYear" extends="baseLayout">
+		<put-attribute name="title" value="Half Year Process" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ProcessMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/HalfYear.jsp" />
+	</definition>
+
+	<definition name="YearEnd" extends="baseLayout">
+		<put-attribute name="title" value="Year End Process" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ProcessMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/YearEnd.jsp" />
+	</definition>
+
+	Ledger Definition
+	<definition name="CurrentLedger" extends="baseLayout">
+		<put-attribute name="title" value="Current Ledger" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CurrentLedger.jsp" />
+	</definition>
+
+	<definition name="CurrentLedgerDetail" extends="baseLayout">
+		<put-attribute name="title" value="Current Ledger" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CurrentLedgerDetail.jsp" />
+	</definition>
+
+	<definition name="AnyTimeLedger" extends="baseLayout">
+		<put-attribute name="title" value="Any Time Ledger" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AnyTimeLedger.jsp" />
+	</definition>
+
+	<definition name="AnyTimeLedgerDetail" extends="baseLayout">
+		<put-attribute name="title" value="Any Time Ledger" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AnyTimeLedgerDetail.jsp" />
+	</definition>
+
+	<definition name="ConsolidatedReport" extends="baseLayout">
+		<put-attribute name="title" value="Consolidated Report" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ConsolidatedReport.jsp" />
+	</definition>
+	
+	<definition name="ProvisionalReport" extends="baseLayout">
+		<put-attribute name="title" value="Provisional Report" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ProvisionalReport.jsp" />
+	</definition>
+
+	<definition name="ProvisionalReportDetail" extends="baseLayout">
+		<put-attribute name="title" value="Provisional Report" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ReportMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ProvisionalReportDetail.jsp" />
+	</definition>-->
+
+	<!-- Administration Definitions -->
+	<definition name="UserManager" extends="baseLayout">
+		<put-attribute name="title" value="User Manager" />
+		<!-- <put-attribute name="header" value="/WEB-INF/jsp/AdminMenu.jsp" /> -->
+		<put-attribute name="body" value="/WEB-INF/jsp/UserManager.jsp" />
+	
+	</definition>
+
+	<!-- <definition name="PageManager" extends="baseLayout">
+		<put-attribute name="title" value="Page Manager" />
+		<put-attribute name="header" value="/WEB-INF/jsp/AdminMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/PageManager.jsp" />
+	</definition>-->
+
+	<definition name="RoleManager" extends="baseLayout">
+		<put-attribute name="title" value="Role Manager" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RoleManager.jsp" />
+	</definition>
+	<definition name="Configuration" extends="baseLayout">
+		<put-attribute name="title" value="Configuration File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		 <put-attribute name="body" value="/WEB-INF/jsp/Configuration.jsp" /> 
+	</definition>
+	
+	
+	<definition name="FileConfiguration" extends="baseLayout">
+		<put-attribute name="title" value="Configuration File" />
+		 <put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" /> 
+		 <put-attribute name="body" value="/WEB-INF/jsp/FileConfiguration.jsp" /> 
+	</definition>
+	<definition name="ViewFileSource" extends="baseLayout">
+		<put-attribute name="title" value="View File Details" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewFileSource.jsp" />
+	</definition>
+	
+	<definition name="UpdtFileDetails" extends="baseLayout">
+		<put-attribute name="title" value="Update File Details" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UpdtFileDetails.jsp" />		
+	</definition>
+	
+	
+	<definition name="ConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ConfigureType.jsp" />		
+	</definition>
+	<definition name="ViewConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="View Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewConfigureType.jsp" />		
+	</definition>
+	<definition name="CompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="Compare Setup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CompareSetup.jsp" />		
+	</definition>
+	<definition name="ViewCompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="View CompareSetup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewCompareSetup.jsp" />		
+	</definition>
+	<definition name="AutoCompare" extends="baseLayout">
+		<put-attribute name="title" value="Auto Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AutoCompare.jsp" />		
+	</definition>
+	
+	<definition name="ManualUpload" extends="baseLayout">
+		<put-attribute name="title" value="Manual Upload" />
+		
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualUpload.jsp" />		
+	</definition>
+	
+	
+		<definition name="classifyFile" extends="baseLayout">
+		<put-attribute name="title" value="Classify File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/classifyFile.jsp" />		
+	</definition>
+	
+	<definition name="ManualCompare" extends="baseLayout">
+		<put-attribute name="title" value="Manual Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualCompare.jsp" />		
+	</definition>
+	
+	
+	<definition name="ReconProcess" extends="baseLayout">
+		<put-attribute name="title" value="Recon Process" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconProcess.jsp" />		
+	</definition>
+	
+	<definition name="ManualCompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="Manual Compare setup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualCompareSetup.jsp" />
+	</definition>
+	
+	
+	<definition name="ManualFile" extends="baseLayout">
+		<put-attribute name="title" value="Manual File Process" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualFile.jsp" />		
+	</definition>
+	
+	
+	
+	<definition name="ReconSettlement" extends="baseLayout">
+		<put-attribute name="title" value="Recon Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconSettlement.jsp" />		
+	</definition>
+	
+		<definition name="UNReconSettlement" extends="baseLayout">
+		<put-attribute name="title" value="UNRecon Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UNReconSettlement.jsp" />		
+	</definition>
+	<definition name="GenerateTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Generate TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateTTUM.jsp" />
+	</definition>
+	<definition name="UploadTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Upload TTUM" />
+
+		<!-- <put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" /> -->
+
+		<put-attribute name="body" value="/WEB-INF/jsp/UploadTTUM.jsp" />
+	</definition>
+	
+	<definition name="SearchData" extends="baseLayout">
+		<put-attribute name="title" value="Search Data" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/searchData.jsp" />
+	</definition>
+	
+	
+	<definition name="ProcessedData" extends="baseLayout">
+		<put-attribute name="title" value="Processed Data" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ProcessedData.jsp" />		
+	</definition>
+	
+	
+	
+	
+	<definition name="Jtable" extends="baseLayout">
+		<put-attribute name="header" value="/WEB-INF/jsp/JtableTest.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	<definition name="NetworkFileUpdate" extends="baseLayout">
+		<put-attribute name="title" value="Download Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NetworkFileUpdate.jsp" />
+	</definition>
+	
+	<definition name="invalidBrowser">
+		<put-attribute name="body" value="/WEB-INF/jsp/invalidBrowser.jsp" />		
+	</definition>
+	<!-- <definition name="gridHelp">
+		<put-attribute name="title" value="Grid Help" />
+		<put-attribute name="header" value="/WEB-INF/jsp/gridHelp.jsp" />
+				
+	</definition>
+	 -->
+	
+	
+	<definition name="SearchData" extends="baseLayout">
+		<put-attribute name="title" value="Search Data" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/searchData.jsp" />
+	</definition>
+ 
+</tiles-definitions>

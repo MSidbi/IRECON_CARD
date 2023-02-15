@@ -1,0 +1,2193 @@
+package com.recon.dao.impl;
+
+import static com.recon.util.GeneralUtil.GET_COLS;
+import static com.recon.util.GeneralUtil.GET_FILE_HEADERS;
+import static com.recon.util.GeneralUtil.GET_FILE_ID;
+import static com.recon.util.GeneralUtil.GET_SETTLEMENT_ID;
+import static com.recon.util.GeneralUtil.GET_SETTLEMENT_PARAM;
+import static com.recon.util.GeneralUtil.insertBatch;
+
+import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.DataInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
+import java.util.zip.ZipOutputStream;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.swing.tree.TreePath;
+
+
+
+
+
+
+
+
+
+
+
+
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.xssf.streaming.SXSSFWorkbook;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.stereotype.Component;
+
+import com.recon.dao.ISettelmentDao;
+import com.recon.model.FilterationBean;
+import com.recon.model.GenerateTTUMBean;
+import com.recon.model.SessionModel;
+import com.recon.model.SettlementBean;
+import com.recon.model.SettlementTypeBean;
+import com.recon.util.OracleConn;
+import com.recon.util.Utility;
+
+@Component
+public class SettlmentDaoImpl extends JdbcDaoSupport implements ISettelmentDao {
+
+	@Override
+	public ArrayList<String> gettype(String tableName) {
+	
+		String query = "SELECT distinct remarks FROM "+tableName+"";
+		System.out.println(query);
+		
+		
+		ArrayList<String> typeList= (ArrayList<String>) getJdbcTemplate().query(query, new RowMapper<String>(){
+            public String mapRow(ResultSet rs, int rowNum) 
+                    throws SQLException {
+					return rs.getString(1);
+					}
+					});
+		
+		
+		return typeList;
+	}
+
+	@Override
+	public List<SettlementTypeBean> getSettlmentType(String type,String tablename) {
+		
+		String query = "SELECT  * FROM "+tablename+" where remarks='"+type+"'";
+		System.out.println(query);
+		
+		
+		List<SettlementTypeBean> typeList= getJdbcTemplate().query(query,new BeanPropertyRowMapper(SettlementTypeBean.class) );
+		
+		
+		return typeList;
+	}
+
+	@Override
+	public ArrayList<SettlementTypeBean> getReconData(String tableName,String type,String date,String searchValue) {
+	
+		
+		//getReconData1(tableName, type, date, searchValue);
+		
+		ArrayList<SettlementTypeBean> settlementTypeBeans ;
+		
+		//String character = tableName.next();
+		String result=null;
+		String splitype[]=null;
+		String formTablename=null;
+		char c = tableName.charAt(0);
+				
+				if (Character.isDigit(c)) { 
+				  
+					result=formTablename;
+					String getTable = "select filename from main_filesource where fileid="+tableName+"";
+
+					formTablename = getJdbcTemplate().queryForObject(getTable,
+							String.class);
+					String stcat = getJdbcTemplate().queryForObject("SELECT FILE_CATEGORY FROM MAIN_FILESOURCE WHERE FILEID = ?", new Object[]{tableName},String.class);
+					//splitype=type.split("\\_");
+					tableName="SETTLEMENT"+"_"+stcat+"_"+formTablename;
+				}
+
+		
+		String split_table[]=tableName.split("_");
+		 
+		 String concat_table=split_table[0]+"_"+split_table[2];
+		
+		try{
+			String query ="";
+			
+			settlementTypeBeans=null;
+			
+			if(concat_table.trim().equals("SETTLEMENT_SWITCH")) {
+				if(split_table[1].equals("AMEX") || split_table[1].equals("RUPAY"))
+				{
+					
+					
+					query ="SELECT PAN,TERMID,TRACE,dcrs_remarks FROM "+ tableName+" WHERE   dcrs_remarks='"+type+"' " //rownum <= 500 AND
+							+ " AND to_date(filedate,'dd/mm/yy')= to_date('"+date+"','dd/mm/yy') ";
+							
+							if(!searchValue.equals("")) {
+								
+								query = query +  " AND (PAN LIKE '%"+searchValue+"%' OR TERMID LIKE '%"+searchValue+"%'  OR TRACE LIKE '%"+searchValue+"%')" ;
+							
+							};
+					
+					
+				}else if(split_table[1].equals("ONUS"))
+				{
+					query ="SELECT PAN,TERMID,TRACE,dcrs_remarks FROM "+ tableName+" WHERE   dcrs_remarks='"+type+"' " //rownum <= 500 AND
+							+ " AND to_date(filedate,'dd/mm/yy')= to_date('"+date+"','dd/mm/yy') ";
+
+					if(!searchValue.equals("")) {
+
+						query = query +  " AND (PAN LIKE '%"+searchValue+"%' OR TERMID LIKE '%"+searchValue+"%'  OR TRACE LIKE '%"+searchValue+"%')" ;
+
+					};
+
+					System.out.println(query);
+
+				}}else if(concat_table.trim().equals("SETTLEMENT_CBS")){
+				
+				if(split_table[1].equals("AMEX") || split_table[1].equals("RUPAY"))
+				{
+					
+					query ="SELECT  foracid,CONTRA_ACCOUNT,Tran_Date,dcrs_remarks ,PARTICULARALS  FROM "+ tableName+" WHERE dcrs_remarks='"+type+"' "//rownum <= 500 AND
+							+ " AND to_date(filedate,'dd/mm/yy')= to_date('"+date+"','dd/mm/yy') ";
+							
+							if(!searchValue.equals("")) {
+								
+								query = query +  " AND( foracid LIKE '%"+searchValue+"%' OR CONTRA_ACCOUNT LIKE '%"+searchValue+"%' "
+										+ "PARTICULARALS '%"+searchValue+"%')" ;
+							
+					 }
+					
+				}
+				else if(split_table[1].equals("ONUS"))
+				{
+				 query ="SELECT  ACCOUNT_NUMBER,CONTRA_ACCOUNT,TranDate,TRAN_PARTICULAR,dcrs_remarks  FROM "+ tableName+" WHERE dcrs_remarks='"+type+"' "//rownum <= 500 AND
+						+ " AND to_date(filedate,'dd/mm/yy')= to_date('"+date+"','dd/mm/yy') ";
+						
+						if(!searchValue.equals("")) {
+							
+							query = query +  " AND( ACCOUNT_NUMBER LIKE '%"+searchValue+"%' OR CONTRA_ACCOUNT LIKE '%"+searchValue+"%' "
+									+ " OR TRACE LIKE '%"+searchValue+"%' OR TRAN_PARTICULAR LIKE '%"+searchValue+"%')" ;
+						
+				 }
+				
+				System.out.println(query);
+				
+			}}
+			
+			settlementTypeBeans= (ArrayList<SettlementTypeBean>) getJdbcTemplate().query(query, new BeanPropertyRowMapper(SettlementTypeBean.class));
+			
+		}catch(Exception ex) {
+			
+			ex.printStackTrace();
+			settlementTypeBeans=null;
+		}
+		return settlementTypeBeans;
+	}
+	
+	//ADDED BY INT5779
+	@Override
+	public String getFileName(String stfileId)
+	{
+		String fileName = "";
+		try
+		{
+			fileName = getJdbcTemplate().queryForObject("SELECT FILENAME FROM MAIN_FILESOURCE WHERE FILEID = ?", new Object[] {stfileId},String.class);
+			
+		}
+		catch(Exception e)
+		{
+			System.out.println("Exception in getFileName");
+		}
+		return fileName;
+	}
+	
+	public List<List<String>> getReconData1(String stFileId,String dcrs_remarks,String date,String searchValue) 
+	{
+		ResultSet rset = null;
+		PreparedStatement pstmt = null;
+		try
+		{
+			String GET_FILENAME = "SELECT FILENAME FROM MAIN_FILESOURCE WHERE FILEID = ?";
+			String fileName = getJdbcTemplate().queryForObject(GET_FILENAME, new Object[] {stFileId},String.class);
+			
+			String stcategory = getJdbcTemplate().queryForObject("SELECT FILE_CATEGORY FROM MAIN_FILESOURCE WHERE FILEID = ?", new Object[]{stFileId},String.class);
+			String stTableName = "SETTLEMENT_"+stcategory+"_"+fileName;
+			
+			String stsubcategory = getJdbcTemplate().queryForObject("SELECT FILE_SUBCATEGORY FROM MAIN_FILESOURCE WHERE FILEID = ?", new Object[]{stFileId},String.class);
+			
+			
+				if(stcategory.equals("NFS")||stcategory.equals("CASHNET")) {
+					
+					stTableName = "SETTLEMENT_"+stcategory+"_"+stsubcategory.substring(0,3)+"_"+fileName;
+				}
+			
+			List<String> Column_list  = getColumnList(stTableName);
+			final List<String> cols = getColumnList(stTableName);
+			
+			//int column_count = getJdbcTemplate().queryForObject("SELECT COUNT(column_name) FROM   all_tab_cols WHERE  table_name = ?",new Object[] {stTableName},Integer.class);
+			String columns = "";
+			for(int i = 0 ; i < Column_list.size() ; i++)
+			{
+				if(i == (Column_list.size()-1))
+				{
+					columns = columns+Column_list.get(i);
+				}
+				else
+				{
+					columns = columns+Column_list.get(i)+",";
+				}
+				
+				
+			}
+			String GET_DATA = "";
+			if(dcrs_remarks.contains("-UNRECON"))
+				GET_DATA = "SELECT "+columns+" FROM "+stTableName +" WHERE (DCRS_REMARKS LIKE '%"+dcrs_remarks+"%' OR DCRS_REMARKS LIKE '%GENERATED%') AND TO_DATE(FILEDATE,'DD/MM/YY') = TO_DATE('"+date+"','DD/MM/YY')";
+			else
+				GET_DATA = "SELECT "+columns+" FROM "+stTableName +" WHERE DCRS_REMARKS = '"+dcrs_remarks+"' AND TO_DATE(FILEDATE,'DD/MM/YY') = TO_DATE('"+date+"','DD/MM/YY')";
+			
+			
+			/*if(stcategory.equals("NFS") && dcrs_remarks.equalsIgnoreCase("MATCHED_UNSUCCESSFUL"))
+			{*/
+			if(stcategory.equals("NFS") && (dcrs_remarks.equalsIgnoreCase("MATCHED_UNSUCCESSFUL") || dcrs_remarks.equalsIgnoreCase("NFS-UPI") || dcrs_remarks.equalsIgnoreCase("NFS-DFS")||dcrs_remarks.equalsIgnoreCase("NFS-JCB") ))
+			{
+				 GET_DATA = "SELECT "+columns+" FROM "+stTableName +" WHERE DCRS_REMARKS like '"+dcrs_remarks+"%' AND TO_DATE(FILEDATE,'DD/MM/YY') = TO_DATE('"+date+"','DD/MM/YY')";
+				
+			}
+			
+		
+			List<List<String>> DATA = new ArrayList<List<String>>();
+			// 1st raw will be headers
+			DATA.add(Column_list);
+			
+			
+/*			List<List<String>> final_data = getJdbcTemplate().query(GET_DATA,new Object[] {} , new RowMapper(){
+				public List<String> mapRow(ResultSet rset, int row)throws SQLException
+				{
+					List<String> DbData1 = new ArrayList<String>();
+					for(String colName : cols)
+					{
+						if(rset.getString(colName) == null)
+							DbData1.add(" ");
+						else
+							DbData1.add(rset.getString(colName));
+					}
+					//return "abc";
+					return DbData1;
+					
+				}
+			});
+*/			
+			
+			pstmt =getConnection().prepareStatement(GET_DATA);
+			rset = pstmt.executeQuery();
+			
+			while(rset.next())
+			{
+				List<String> DbData = new ArrayList<String>();
+				for(String colName : Column_list)
+				{
+					if(rset.getString(colName) == null)
+						DbData.add("");
+					else
+						DbData.add(rset.getString(colName));
+				}
+				DATA.add(DbData);
+			}
+			
+			return DATA;
+			
+		
+		}
+		catch(Exception e)
+		{
+			System.out.println("Exception is "+e);
+			return null;
+		}
+		finally{
+			try
+			{
+			if(rset != null)
+			{
+				pstmt.close();
+				rset.close();
+				
+			}
+			}
+			catch(Exception e)
+			{
+				System.out.println("Exception in closing rset");
+			}
+		}
+	
+	}
+	
+	
+	
+	@Override
+	public ArrayList<String> getColumnList(String tableName) {
+		
+		String query = "SELECT column_name FROM   all_tab_cols WHERE  table_name = '"+tableName.toUpperCase()+"' and column_name not like '%$%'";
+		System.out.println(query);
+		
+		
+		ArrayList<String> typeList= (ArrayList<String>) getJdbcTemplate().query(query, new RowMapper<String>(){
+            public String mapRow(ResultSet rs, int rowNum) 
+                    throws SQLException {
+					return rs.getString(1);
+					}
+					});
+		
+		System.out.println(typeList);
+		return typeList;
+		
+	}
+
+	@Override
+	public int getReconDataCount(String table, String type, String date,String searchValue) {
+		
+		String query ="";
+		
+	 int count= 0;
+		
+	 String split_table[]=table.split("_");
+	 
+	 String concat_table=split_table[0]+"_"+split_table[2];
+	 try{
+		 if(concat_table.equals("SETTLEMENT_SWITCH")) {
+			 query ="SELECT count(*) FROM "+ table+" WHERE   dcrs_remarks='"+type+"' " //rownum <= 500 AND
+					+ " AND to_date(filedate,'dd/mm/yy')= to_date('"+date+"','dd/mm/yy') ";
+					
+					if(!searchValue.equals("")) {
+						
+						query = query +  " AND (PAN LIKE '%"+searchValue+"%' OR TERMID LIKE '%"+searchValue+"%'  OR TRACE LIKE '%"+searchValue+"%')" ;
+					
+					}
+			
+			System.out.println(query);
+			
+			}else if(concat_table.trim().equals("SETTLEMENT_CBS")){
+				
+				 query ="SELECT  count(*)  FROM "+ table+" WHERE dcrs_remarks='"+type+"' "//rownum <= 500 AND
+						+ " AND to_date(filedate,'dd/mm/yy')= to_date('"+date+"','dd/mm/yy') ";
+						
+				 if(!searchValue.equals("")) {
+							
+							query = query +  " AND( ACCOUNT_NUMBER LIKE '%"+searchValue+"%' OR CONTRA_ACCOUNT LIKE '%"+searchValue+"%' "
+									+ " OR TRACE LIKE '%"+searchValue+"%')" ;
+						
+				 }
+				
+				System.out.println(query);
+				
+			}
+		
+		count = getJdbcTemplate().queryForObject(query, Integer.class);
+	 }catch(Exception ex){
+		 
+		 ex.printStackTrace();
+	 }
+		
+		return count;
+	}
+
+	@Override
+	public ArrayList<SettlementTypeBean> getChngReconData(String table,
+			String type, String date, String searchValue, int jtStartIndex,
+			int jtPageSize) {
+		
+		ArrayList<SettlementTypeBean> settlementTypeBeans ;
+		 String split_table[]=table.split("_");
+		 
+		 String concat_table=split_table[0]+"_"+split_table[2];
+		try {
+			String query = "";
+
+			settlementTypeBeans = null;
+
+			if (concat_table.trim().equals("SETTLEMENT_SWITCH")) {
+				if(split_table[1].equals("AMEX") || split_table[1].equals("RUPAY")){
+					
+					query = "SELECT * FROM ( SELECT ROWNUM,PAN,TERMID,TRACE,FileDate,dcrs_remarks , '"+table+"' as SETLTBL, ROW_NUMBER() OVER( ORDER BY PAN) AS RN FROM " + table
+							+ " WHERE   dcrs_remarks='" + type+ "' " // rownum <= 500 AND
+							+ " AND to_date(filedate,'dd/mm/yy')= to_date('"
+							+ date + "','dd/mm/yy') ";
+
+					if (!searchValue.equals("")) {
+
+						query = query + " AND (PAN LIKE '%" + searchValue
+								+ "%' OR TERMID LIKE '%" + searchValue
+								+ "%'  OR TRACE LIKE '%" + searchValue + "%')";
+
+					}
+					query=query+") where RN between "+(jtStartIndex+1)+" and "+(jtPageSize+jtStartIndex)+"";
+					
+
+					System.out.println(query);
+					
+				}
+				else if(split_table[1].equals("ONUS"))
+				{
+				query = "SELECT * FROM ( SELECT ROWNUM,PAN,TERMID,TRACE,FileDate,dcrs_remarks , '"+table+"' as SETLTBL, ROW_NUMBER() OVER( ORDER BY PAN) AS RN FROM " + table
+						+ " WHERE   dcrs_remarks='" + type+ "' " // rownum <= 500 AND
+						+ " AND to_date(filedate,'dd/mm/yy')= to_date('"
+						+ date + "','dd/mm/yy') ";
+
+				if (!searchValue.equals("")) {
+
+					query = query + " AND (PAN LIKE '%" + searchValue
+							+ "%' OR TERMID LIKE '%" + searchValue
+							+ "%'  OR TRACE LIKE '%" + searchValue + "%')";
+
+				}
+				query=query+") where RN between "+(jtStartIndex+1)+" and "+(jtPageSize+jtStartIndex)+"";
+				
+
+				System.out.println(query);
+
+			} }else if (concat_table.trim().equals("SETTLEMENT_CBS")) {
+				if(split_table[1].equals("AMEX") || split_table[1].equals("RUPAY"))
+				{
+					
+					query = "SELECT * FROM ( SELECT  foracid,CONTRA_ACCOUNT,Tran_Date,dcrs_remarks,PARTICULARALS ,'"+table+"' as SETLTBL, ROW_NUMBER() OVER( ORDER BY foracid ) AS RN  FROM "
+							+ table
+							+ " WHERE dcrs_remarks='"
+							+ type
+							+ "' "// rownum <= 500 AND
+							+ " AND to_date(filedate,'dd/mm/yy')= to_date('"
+							+ date + "','dd/mm/yy') ";
+
+					if (!searchValue.equals("")) {
+
+						query = query + " AND( foracid LIKE '%"
+								+ searchValue + "%' OR CONTRA_ACCOUNT LIKE '%"
+								+ searchValue + "%' OR PARTICULARALS LIKE '%"
+								+ searchValue + "%')";
+
+					}
+					query=query+") where RN between "+(jtStartIndex+1)+" and "+(jtPageSize+jtStartIndex)+"";
+					
+
+					System.out.println(query);
+					
+					
+				}
+				else if(split_table[1].equals("ONUS"))
+				{
+				query = "SELECT * FROM ( SELECT  ACCOUNT_NUMBER,CONTRA_ACCOUNT,TranDate,FileDate,TRAN_PARTICULAR,remarks ,'"+table+"' as SETLTBL, ROW_NUMBER() OVER( ORDER BY ACCOUNT_NUMBER ) AS RN  FROM "
+						+ table
+						+ " WHERE remarks='"
+						+ type
+						+ "' "// rownum <= 500 AND
+						+ " AND to_date(filedate,'dd/mm/yy')= to_date('"
+						+ date + "','dd/mm/yy') ";
+
+				if (!searchValue.equals("")) {
+
+					query = query + " AND( ACCOUNT_NUMBER LIKE '%"
+							+ searchValue + "%' OR CONTRA_ACCOUNT LIKE '%"
+							+ searchValue + "%' " + " OR TRACE LIKE '%"
+							+ searchValue + "%' OR TRAN_PARTICULAR LIKE '%"
+							+ searchValue + "%')";
+
+				}
+				query=query+") where RN between "+(jtStartIndex+1)+" and "+(jtPageSize+jtStartIndex)+"";
+				
+
+				System.out.println(query);
+
+			}}
+
+			settlementTypeBeans = (ArrayList<SettlementTypeBean>) getJdbcTemplate().query(query,new BeanPropertyRowMapper(SettlementTypeBean.class));
+			
+		}catch(Exception ex) {
+			
+			ex.printStackTrace();
+			settlementTypeBeans=null;
+		}
+		
+		
+		
+		return settlementTypeBeans;
+		
+	}
+	
+	@Override	
+	public void manualReconToSettlement(String table_Name,String stFile_date)throws Exception
+	{
+		
+		String[] a = table_Name.split("_");
+		String table_cols = "CREATEDDATE DATE,CREATEDBY VARCHAR(100 BYTE),FILEDATE DATE, DCR_TRAN_ID NUMBER, REMARKS VARCHAR(100 BYTE)";
+		String CREATE_QUERY = "";
+		String CHECK_TABLE = "";
+		String temp_param = "";
+		String condition = "";
+		PreparedStatement pstmt = null;
+		Connection conn = null;
+		ResultSet rset = null;
+		
+		
+		try
+		{
+			
+			//check if table exist if not then create it 
+			int file_id = getJdbcTemplate().queryForObject(GET_FILE_ID, new Object[] { a[2],a[0] },Integer.class);
+			System.out.println("File id is "+file_id);
+			
+			String stFile_headers = getJdbcTemplate().queryForObject(GET_FILE_HEADERS,new Object[]{file_id}, String.class);
+			//String Update_cols = stFile_headers;
+			stFile_headers = "MAN_CONTRA_ACCOUNT,"+stFile_headers;
+			
+			CHECK_TABLE = "SELECT count (*) FROM tab WHERE tname  = 'SETTLEMENT_"+a[2].toUpperCase()+"'";
+			int tableExist = getJdbcTemplate().queryForObject(CHECK_TABLE, new Object[] { },Integer.class);
+			
+			System.out.println("CHECK TABLE QUERY IS "+CHECK_TABLE);
+			//get connection
+			conn = getConnection();
+			if(tableExist == 0)
+			{
+				String[] cols = stFile_headers.split(",");
+				for(int i = 0 ; i < cols.length ; i++)
+				{
+					table_cols = table_cols + "," + cols[i] + " VARCHAR(100 BYTE)";
+				}
+
+				CREATE_QUERY = "CREATE TABLE SETTLEMENT_"+a[3]+" ("+table_cols+")";
+				System.out.println("CREATE TABLE QUERY IS "+CREATE_QUERY);
+				pstmt = conn.prepareStatement(CREATE_QUERY);
+				rset = pstmt.executeQuery();
+				
+				pstmt = null;
+				rset = null;
+
+			}
+			else if(tableExist == 1 && a[2].equalsIgnoreCase("CBS"))
+			{
+				boolean CheckForCol = false;
+				//now check for the field MAN_CONTRA_ACCOUNT IF NOT PRESENT THEN ALTER TABLE
+				List<String> Columns = getJdbcTemplate().query(GET_COLS, new Object[]{"SETTLEMENT_CBS"}, new ColumnsMapper());
+				
+				for(int i = 0 ;i<Columns.size(); i++)
+				{
+					if(Columns.get(i).equalsIgnoreCase("MAN_CONTRA_ACCOUNT"))
+					{
+						CheckForCol = true;
+					}
+				}
+				
+				if(!CheckForCol)
+				{
+					String ALTER_QUERY = "ALTER TABLE SETTLEMENT_"+a[2]+" ADD MAN_CONTRA_ACCOUNT VARCHAR2(100 BYTE)";
+					getJdbcTemplate().execute(ALTER_QUERY);
+				}
+			}
+			
+			
+	//------------------------------------------ FILTER MANUAL RECON RECORDS USING CRITEIRA PROVIDED IN DOC----------------------------------------------------------
+		    
+		    
+		    List<SettlementBean> settlement_id = getJdbcTemplate().query(GET_SETTLEMENT_ID , new Object[] {file_id}, new SettlementId());
+		    
+		 for(int id = 0 ; id < settlement_id.size() ; id++)
+		 {
+			 condition = "";
+			 System.out.println("SETTLEMENT ID IS "+settlement_id.get(id).getInSettlement_id());
+			 List<FilterationBean> search_params = getJdbcTemplate().query(GET_SETTLEMENT_PARAM, new Object[] {file_id,settlement_id.get(id).getInSettlement_id()}, new SearchParameterMaster());
+		    
+			System.out.println("got the search params"+search_params.size());
+			for(int i = 0; i<search_params.size();i++)
+			{
+				FilterationBean filterBeanObj = new FilterationBean();
+				filterBeanObj = search_params.get(i);
+				temp_param = filterBeanObj.getStSearch_header().trim();
+				
+				if((filterBeanObj.getStSearch_padding().trim()).equals("Y"))
+				{
+						
+
+						if((filterBeanObj.getStSearch_Condition().trim()).equalsIgnoreCase("like"))
+						{
+							condition = condition + "(SUBSTR(TRIM("+filterBeanObj.getStSearch_header()+"),"+filterBeanObj.getStsearch_Startcharpos()+","+
+									filterBeanObj.getStsearch_Endcharpos()+") "+filterBeanObj.getStSearch_Condition().trim()+
+									"'%"+filterBeanObj.getStSearch_pattern().trim()+"%' ";
+						}
+						else if((filterBeanObj.getStSearch_Condition().trim()).equals("!="))
+						{
+							if(i == (search_params.size()-1))
+							{
+								condition = condition + "(SUBSTR(TRIM(NVL("+filterBeanObj.getStSearch_header()+",'!NULL!')),"+filterBeanObj.getStsearch_Startcharpos()+","+
+										filterBeanObj.getStsearch_Endcharpos()+") "+"NOT IN ('"+filterBeanObj.getStSearch_pattern().trim()+"') ";					
+							}
+							else
+							{
+								
+								condition = condition + "(SUBSTR(TRIM(NVL("+filterBeanObj.getStSearch_header()+",'!NULL!')),"+filterBeanObj.getStsearch_Startcharpos()+","+
+										filterBeanObj.getStsearch_Endcharpos()+") "+"NOT IN ('"+filterBeanObj.getStSearch_pattern().trim()+"' ";
+							}
+						}
+						else
+						{
+							if(filterBeanObj.getStSearch_Datatype()!=null)
+							{
+								if(filterBeanObj.getStSearch_Datatype().equals("NUMBER"))
+								{
+									condition = condition + "(SUBSTR(TRIM("+filterBeanObj.getStSearch_header()+"),"+filterBeanObj.getStsearch_Startcharpos()+","+
+											filterBeanObj.getStsearch_Endcharpos()+") "+filterBeanObj.getStSearch_Condition().trim()+filterBeanObj.getStSearch_pattern().trim();
+								}
+							}
+							else
+							{
+								condition = condition + "(SUBSTR(TRIM("+filterBeanObj.getStSearch_header()+"),"+filterBeanObj.getStsearch_Startcharpos()+","+
+										filterBeanObj.getStsearch_Endcharpos()+") "+filterBeanObj.getStSearch_Condition().trim()+"'"+filterBeanObj.getStSearch_pattern().trim()+"' ";
+							}
+							
+						}
+					
+					
+				}
+				else
+				{
+					if(filterBeanObj.getStSearch_Condition().equalsIgnoreCase("like"))
+					{
+						condition = condition + "(TRIM("+filterBeanObj.getStSearch_header()+") "+filterBeanObj.getStSearch_Condition().trim()+" "+
+									"'%"+filterBeanObj.getStSearch_pattern().trim()+"%'";
+					}
+					else if((filterBeanObj.getStSearch_Condition().trim()).equals("!="))
+					{
+						if(i == (search_params.size()-1))
+						{
+							condition = condition + "(TRIM(NVL("+filterBeanObj.getStSearch_header()+",'!NULL!')) "+" NOT IN ('"+filterBeanObj.getStSearch_pattern().trim()+"') ";
+						}
+						else
+						{
+							condition = condition + "(TRIM(NVL("+filterBeanObj.getStSearch_header()+",'!NULL!')) "+" NOT IN ('"+filterBeanObj.getStSearch_pattern().trim()+"' ";
+						}
+					}
+					else
+					{
+						if(filterBeanObj.getStSearch_Datatype()!=null)
+						{
+							if(filterBeanObj.getStSearch_Datatype().equals("NUMBER"))
+							{	
+								condition = condition + "(TRIM("+filterBeanObj.getStSearch_header()+") "+filterBeanObj.getStSearch_Condition().trim()+
+										filterBeanObj.getStSearch_pattern().trim();
+							}
+						}
+						else
+						{
+							condition = condition + "(TRIM("+filterBeanObj.getStSearch_header()+") "+filterBeanObj.getStSearch_Condition().trim()+" '"+
+									filterBeanObj.getStSearch_pattern().trim()+"'";
+						}
+					}
+					 
+					
+				}
+				
+				for(int j= (i+1); j <search_params.size(); j++)
+				{
+					//System.out.println("CHECK THE VALUE IN J "+j+" value = "+search_params.get(j).getStSearch_header());
+					if(temp_param.equals(search_params.get(j).getStSearch_header()))
+					{
+							
+						if(search_params.get(j).getStSearch_padding().equals("Y"))
+						{ 
+							if((search_params.get(j).getStSearch_Condition().trim()).equalsIgnoreCase("like"))
+							{
+								condition = condition + " OR SUBSTR(TRIM(" + search_params.get(j).getStSearch_header()+") , "+search_params.get(j).getStsearch_Startcharpos()+","+
+										search_params.get(j).getStsearch_Endcharpos()+") "+search_params.get(j).getStSearch_Condition().trim()+
+										"'%"+search_params.get(j).getStSearch_pattern().trim()+"%'";
+							}
+							else if((filterBeanObj.getStSearch_Condition().trim()).equals("!="))
+							{
+								if(j==(search_params.size()-1))
+								{	
+									/*condition = condition + " OR SUBSTR(" + search_params.get(j).getStSearch_header()+" , "+search_params.get(j).getStsearch_Startcharpos()+","+
+										search_params.get(j).getStsearch_Endcharpos()+") "+search_params.get(j).getStSearch_Condition()+ search_params.get(j).getStSearch_pattern();*/
+									condition = condition + ", '"+search_params.get(j).getStSearch_pattern().trim()+"')";
+								}
+								else
+								{
+									condition = condition + ", '"+search_params.get(j).getStSearch_pattern().trim()+"' ";
+								}
+								
+							}
+							else
+							{
+								if(filterBeanObj.getStSearch_Datatype() != null)
+								{
+									if(filterBeanObj.getStSearch_Datatype().equals("NUMBER"))
+									{		
+										condition = condition + " OR SUBSTR(TRIM(" + search_params.get(j).getStSearch_header()+") , "+search_params.get(j).getStsearch_Startcharpos()+","+
+												search_params.get(j).getStsearch_Endcharpos()+") "+search_params.get(j).getStSearch_Condition().trim()+ 
+												search_params.get(j).getStSearch_pattern().trim();
+									}
+								}
+								else
+								{
+									condition = condition + " OR SUBSTR(TRIM(" + search_params.get(j).getStSearch_header()+") , "+search_params.get(j).getStsearch_Startcharpos()+","+
+											search_params.get(j).getStsearch_Endcharpos()+") "+search_params.get(j).getStSearch_Condition().trim()+ 
+											"'"+search_params.get(j).getStSearch_pattern().trim()+"'";
+								}
+							
+							}
+						}
+						else
+						{
+							 if((search_params.get(j).getStSearch_Condition().trim()).equalsIgnoreCase("like"))
+							{
+								condition = condition + " OR TRIM(" + search_params.get(j).getStSearch_header()+") "+
+										search_params.get(j).getStSearch_Condition().trim()+" "+
+										"'%"+search_params.get(j).getStSearch_pattern().trim()+"%'";
+								
+							}
+							else if((filterBeanObj.getStSearch_Condition().trim()).equals("!="))
+							{
+								if(j==(search_params.size()-1))
+								{
+									condition = condition + " , '" +search_params.get(j).getStSearch_pattern().trim()+"')";
+								}
+								else
+								{
+									condition = condition + " , '" +search_params.get(j).getStSearch_pattern().trim()+"' ";
+								}
+								
+							}
+							else
+							{
+								System.out.println("check the datatype "+filterBeanObj.getStSearch_Datatype());
+								if(filterBeanObj.getStSearch_Datatype() != null)
+								{
+									if(filterBeanObj.getStSearch_Datatype().equals("NUMBER"))
+									{		
+										condition = condition + " OR TRIM(" + search_params.get(j).getStSearch_header()+") "+
+												search_params.get(j).getStSearch_Condition().trim()+search_params.get(j).getStSearch_pattern().trim();
+									}
+								}
+								else
+								{
+									condition = condition + " OR TRIM(" + search_params.get(j).getStSearch_header()+") "+
+											search_params.get(j).getStSearch_Condition().trim()+" '"+search_params.get(j).getStSearch_pattern().trim()+"'";
+								}
+							
+							}
+						}
+						
+						
+							i = j;
+						
+					}
+					
+				}
+				//System.out.println("i value is "+i);
+				if(i != (search_params.size())-1)
+				{
+					condition = condition +" ) AND ";
+				}
+				else
+					condition = condition +")";
+				
+			//	System.out.println("condition is "+condition);
+			}
+			
+			//System.out.println("Condition "+condition);
+			String RECON_CATEGORIZATION = "SELECT * FROM "+table_Name + " OS1 " ;
+			String DELETE_QUERY = "DELETE FROM "+table_Name + " OS1 ";
+			
+			if(!condition.equals(""))
+			{
+				RECON_CATEGORIZATION = RECON_CATEGORIZATION +" WHERE "+ condition + " AND TO_CHAR(CREATEDDATE ,'DD/MM/YYYY') = TO_CHAR(SYSDATE,'DD/MM/YYYY')" +
+						" AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+stFile_date+"'" ;
+						
+				
+				DELETE_QUERY = DELETE_QUERY +" WHERE "+ condition + " AND TO_CHAR(CREATEDDATE ,'DD/MM/YYYY') = TO_CHAR(SYSDATE,'DD/MM/YYYY')" +
+						" AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+stFile_date+"'" ;
+						
+				
+			}
+			else
+			{
+				RECON_CATEGORIZATION = RECON_CATEGORIZATION +" WHERE TO_CHAR(CREATEDDATE ,'DD/MM/YYYY') = TO_CHAR(SYSDATE,'DD/MM/YYYY')" +
+						" AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+stFile_date+"'";
+				DELETE_QUERY = DELETE_QUERY +" WHERE TO_CHAR(CREATEDDATE ,'DD/MM/YYYY') = TO_CHAR(SYSDATE,'DD/MM/YYYY')" +
+						" AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+stFile_date+"'";
+			}
+			
+			//String CHECK_SETTLEMENT = "SELECT * FROM SETTLEMENT_"+a[2] +" OS2 ";
+			//NO NEED OF KNOCKOFF CONDITION AS WE ARE DELETING THE RECORDS THE SAME TIME
+			/*int reversal_id = getJdbcTemplate().queryForObject(GET_REVERSAL_ID, new Object[] { (file_id), a[0]},Integer.class);
+			List<KnockOffBean> knockoff_Criteria = getJdbcTemplate().query(GET_KNOCKOFF_CRITERIA, new Object[] { reversal_id , file_id}, new KnockOffCriteriaMaster());
+			*/
+			//String knockoffCond = getKnockOffCondition(knockoff_Criteria);
+			
+			//System.out.println("check here"+knockoffCond);
+			
+			/*if(!knockoffCond.equals(""))
+			{
+				CHECK_SETTLEMENT = CHECK_SETTLEMENT + " WHERE "+knockoffCond+" AND trunc(OS2.CREATEDDATE) = trunc(SYSDATE)";
+			}*/
+			
+			//RECON_CATEGORIZATION = RECON_CATEGORIZATION + "("+ CHECK_SETTLEMENT +")";
+			//DELETE_QUERY = DELETE_QUERY + "("+CHECK_SETTLEMENT + ")";
+			
+			System.out.println("recon categorization QUERY IS "+RECON_CATEGORIZATION);
+			
+			pstmt = conn.prepareStatement(RECON_CATEGORIZATION);
+			ResultSet CIA_GL_RECORDS = pstmt.executeQuery();
+			
+			
+			
+			String INSERT_RECORDS = "INSERT INTO SETTLEMENT_"+a[2] + " (CREATEDDATE, CREATEDBY,FILEDATE, REMARKS, "+stFile_headers+")" +
+								" VALUES (SYSDATE, 'INT5779',TO_DATE('"+stFile_date+"','DD/MM/YYYY'),'ONUS-CIA-GL'";
+			String[] tab_cols = stFile_headers.split(",");
+			for(int count = 0 ; count <tab_cols.length ; count++)
+			{
+				INSERT_RECORDS = INSERT_RECORDS + ",?";
+			}
+			
+			INSERT_RECORDS = INSERT_RECORDS + ")";
+			
+			System.out.println("INSERT QUERY IS "+INSERT_RECORDS);
+			
+			insertBatch(INSERT_RECORDS, CIA_GL_RECORDS, tab_cols, conn);
+			
+			//DELETE THE RECORDS FROM ONUS TABLE AFTER INSERTION IN SETTLEMENT TABLE
+			System.out.println("DELETING RECON CATEGORIZED RECORDS------------------------------------------------------");
+			System.out.println("DELETE QUERY IS "+DELETE_QUERY);
+			getJdbcTemplate().execute(DELETE_QUERY);
+			System.out.println("COMPLETED DELETION--------------------------------------------------------------------");
+			
+			
+			
+			
+			/*String DELETE_QUERY = "DELETE FROM "+table_Name +" WHERE ";
+			
+			for(int count = 0 ; count <tab_cols.length ; count++)
+			{
+				if(count == (tab_cols.length-1))
+				{
+					DELETE_QUERY = DELETE_QUERY + "NVL("+tab_cols[count] + ",'!null!') = ? ";
+				}
+				else
+					DELETE_QUERY = DELETE_QUERY + "NVL("+tab_cols[count] + ",'!null!') = ? AND ";
+			}
+			System.out.println("DELETE QUERY IS "+DELETE_QUERY);
+			
+			PreparedStatement delete_statement = conn.prepareStatement(RECON_CATEGORIZATION);
+			ResultSet delete_set = delete_statement.executeQuery();
+			
+			deleteBatch(DELETE_QUERY, delete_set, tab_cols, conn);
+			*/
+			
+		 }
+		 
+		 System.out.println("COMPLETED CIA GL--------------------------------------------------------------------------------------------------------------------------------------------------");
+		 //insert remaining records from recon table in ONLINE ONUS table
+		/* String REMAINING_RECON_RECORDS = "SELECT * FROM "+table_Name +" OS1 WHERE NOT EXISTS " +
+		 								" ( SELECT * FROM SETTLEMENT_"+a[3]+" OS2 WHERE ";*/
+		 
+			/*int reversal_id = getJdbcTemplate().queryForObject(GET_REVERSAL_ID, new Object[] { (file_id), a[1]},Integer.class);
+			List<KnockOffBean> knockoff_Criteria = getJdbcTemplate().query(GET_KNOCKOFF_CRITERIA, new Object[] { reversal_id , file_id}, new KnockOffCriteriaMaster());
+			
+			String knockoffCond = getKnockOffCondition(knockoff_Criteria);
+			
+			REMAINING_RECON_RECORDS = REMAINING_RECON_RECORDS + knockoffCond + ")";
+	*/
+		 String REMAINING_RECON_RECORDS = "SELECT * FROM "+table_Name+" WHERE TO_CHAR(CREATEDDATE,'DD/MM/YYYY') = TO_CHAR(SYSDATE,'DD/MM/YYYY')" +
+		 		" AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+stFile_date+"'";
+		 System.out.println("REMANING RECON RECORDS "+REMAINING_RECON_RECORDS);
+		 
+		 PreparedStatement remainingStatement = conn.prepareStatement(REMAINING_RECON_RECORDS);
+		 ResultSet remaining_set = remainingStatement.executeQuery();
+		 
+		 
+		 String INSERT_REMAINING_RECORDS = "INSERT INTO "+a[0]+"_"+a[2]+" (CREATEDDATE, CREATEDBY,FILEDATE,"+stFile_headers
+				 +") VALUES(SYSDATE, 'INT5779',TO_DATE('"+stFile_date+"','DD/MM/YYYY')";
+		 String[] tab_cols = stFile_headers.split(",");
+		 for(int count = 0 ; count < tab_cols.length; count++)
+		 {
+			 INSERT_REMAINING_RECORDS = INSERT_REMAINING_RECORDS + ",?";
+		 }
+		 INSERT_REMAINING_RECORDS = INSERT_REMAINING_RECORDS + ")";
+		 
+		 System.out.println("INSERT REMAINING RECORDS "+INSERT_REMAINING_RECORDS);
+		 
+		 insertBatch(INSERT_REMAINING_RECORDS, remaining_set, tab_cols, conn);
+		 
+		 System.out.println("COMPLETED INSERTING IN ONLINE ONUS TABLE!!!!!!");
+		 
+		 // TRUNCATE MANUAL ONUS TABLE
+		 String TRUNCATE_QUERY = "TRUNCATE TABLE "+ table_Name;
+		// getJdbcTemplate().execute(TRUNCATE_QUERY);
+		 
+		 System.out.println("TRUNCATED TABLE "+table_Name);
+		 
+		 
+	//------------------------------------------AS ON 22 JUNE 2017 NO NEED TO UPDATE RAW TABLE-----------------------------------------	 
+	//**********************************************************update raw table***************************	 
+	/*	PreparedStatement psrecon = conn.prepareStatement(REMAINING_RECON_RECORDS);
+			ResultSet rs = psrecon.executeQuery();
+			//get Raw table name
+			String stRaw_Table = getJdbcTemplate().queryForObject(GET_TABLE_NAME , new Object[]{file_id}, String.class);
+			String UPDATE_QUERY ="UPDATE "+stRaw_Table.toUpperCase()+" SET NEXT_TRAN_DATE = TO_CHAR(SYSDATE,'DD/MON/YYYY') WHERE ( ";
+			//System.out.println("cols lenght is "+col_names.length);
+			System.out.println("update columns are "+Update_cols);
+			String[] col_names = Update_cols.split(",");
+			for(int i=0; i<col_names.length ; i++)
+			{
+				if(i==(col_names.length-1))
+					UPDATE_QUERY = UPDATE_QUERY + "NVL("+col_names[i] + ",'!null!') = ?";
+				else
+					UPDATE_QUERY = UPDATE_QUERY + "NVL("+ col_names[i] + ",'!null!') = ? AND ";
+			}
+			
+			UPDATE_QUERY = UPDATE_QUERY + ")";
+			
+			System.out.println("UPDATE QUERY "+UPDATE_QUERY);
+			System.out.println("start time FOR UPDATING RAW TABLE "+new java.sql.Timestamp(new java.util.Date().getTime()));
+			deleteBatch(UPDATE_QUERY, rs, col_names,conn);//IT IS UPDATE QUERY FOR RAW TABLE
+			//updateBatch(UPDATE_QUERY, rs, tab_cols);
+			System.out.println("End time FOR UPDATING RAW TABLE "+new java.sql.Timestamp(new java.util.Date().getTime()));*/
+		 
+		 
+		 
+		}
+		catch(Exception e)
+		{
+			System.out.println("Exception is "+e);
+		}
+		}
+	
+	private static class ColumnsMapper implements RowMapper<String> {
+
+		@Override
+		public String mapRow(ResultSet rs, int rowNum) throws SQLException {
+			
+			String stColumns = rs.getString("COLUMN_NAME");
+			
+			return stColumns;
+			
+		}
+	}
+	private static class SettlementId implements RowMapper<SettlementBean> {
+
+		@Override
+		public SettlementBean mapRow(ResultSet rs, int rowNum) throws SQLException {
+			
+			SettlementBean settlementBean = new SettlementBean();
+			settlementBean.setInSettlement_id(rs.getInt("ID"));
+			return settlementBean;
+		}
+	}
+
+
+	private static class SearchParameterMaster implements RowMapper<FilterationBean> {
+
+		@Override
+		public FilterationBean mapRow(ResultSet rs, int rowNum) throws SQLException {
+			//System.out.println("row num is "+rowNum);
+		//	System.out.println("header is "+rs.getString("FILE_HEADER"));
+			/*while(rs.next())
+			{*/
+				//System.out.println("header is "+rs.getString("TABLE_HEADER"));
+			FilterationBean filterBean = new FilterationBean();
+			
+			filterBean.setStSearch_header(rs.getString("TABLE_HEADER"));
+			filterBean.setStSearch_pattern(rs.getString("PATTERN"));
+			filterBean.setStSearch_padding(rs.getString("PADDING"));
+			//filterBean.setStsearch_charpos(rs.getString("CHARPOSITION"));
+			filterBean.setStsearch_Startcharpos(rs.getString("START_CHARPOS"));
+			filterBean.setStsearch_Endcharpos(rs.getString("CHARSIZE"));
+			filterBean.setStSearch_Condition(rs.getString("CONDITION"));
+			filterBean.setStSearch_Datatype(rs.getString("DATATYPE"));
+			
+			//search_params.add(filterBean);
+		//	}
+			return filterBean;
+			
+			
+		}
+	}
+
+
+	@Override
+	public int updateRecord(SettlementTypeBean settlementTypeBean) {
+		try{
+			int result =0;
+			
+			String query = "update "+settlementTypeBean.getSetltbl()+" set remarks='"+settlementTypeBean.getrEMARKS()+"' WHERE 1=1 AND remarks='ONUS-RECON'"
+					+ "	AND to_date(filedate,'dd/mm/yy')= to_date('"+settlementTypeBean.getFileDate()+"','dd/mm/yy') "; 
+			
+			if(settlementTypeBean.getSetltbl().trim().equalsIgnoreCase("settlement_switch")){
+				
+				query= query + " AND pan='"+settlementTypeBean.getPan()+"' "
+							 + "AND TERMID ='"+settlementTypeBean.gettERMID()+"'"
+							 + " AND TRACE ='"+settlementTypeBean.gettRACE()+"'";
+				
+				
+			}else if(settlementTypeBean.getSetltbl().trim().equalsIgnoreCase("settlement_cbs")) {
+				
+				
+				query= query + " AND ACCOUNT_NUMBER='"+settlementTypeBean.getaCCOUNT_NUMBER()+"' "
+						 + "AND CONTRA_ACCOUNT ='"+settlementTypeBean.getcONTRA_ACCOUNT()+"'"
+						 + " AND TRANDATE ='"+settlementTypeBean.gettRANDATE()+"'"
+						 + " AND TRAN_PARTICULAR ='"+settlementTypeBean.gettRAN_PARTICULAR()+"'";
+				
+			}
+			
+			System.out.println("query"+query);
+			result = getJdbcTemplate().update(query);
+			
+			if(result>0) {
+				
+				return 1;
+			}else{
+				
+				return 0;
+			}
+			
+			
+			
+			
+		}catch(Exception ex){
+			ex.printStackTrace();
+			return 0;
+			
+		}
+		
+		
+	}
+
+/*@Override
+public void buildExcelDocument1(Map<String, Object> map, String stFilename,HttpServletRequest request,HttpServletResponse response) throws Exception {
+		
+		XSSFWorkbook book = new XSSFWorkbook();
+		
+		List<List<String>> generatettum_list = null;
+		generatettum_list= (List<List<String>>) map.get("DATA");
+		
+		List<String> File_Headers = generatettum_list.get(0);
+		
+		generatettum_list.remove(0);
+		
+		//get filename
+		String filename = (String)map.get("filename");
+		
+		List<String> Records = new ArrayList<>();
+		Date date = new Date();
+		SimpleDateFormat sdf = new SimpleDateFormat("ddMMyyhhmm");
+		
+		String strDate = sdf.format(date);
+		
+		 System.out.println(strDate);
+		response.setContentType("application/vnd.ms-excel");
+		response.setHeader("Content-disposition", "attachment; filename="+filename+".xls");
+		
+		XSSFSheet sheet = book.createSheet("Records");
+		//HSSFSheet sheet = workbook.createSheet("Records");
+		
+	//	CellStyle style =book.createCellStyle();
+		
+		//CellStyle style = workbook.createCellStyle();
+		//CellStyle style = book.createCellStyle();
+		//Font font = workbook.createFont();
+		Font font = book.createFont();
+		font.setFontName("Arial");
+		font.setBoldweight(XSSFFont.BOLDWEIGHT_BOLD);
+		font.setColor()
+		style.setFont(font);
+
+		//CellStyle numberStyle = workbook.createCellStyle();
+		///CellStyle numberStyle = book.createCellStyle();
+		numberStyle.setDataFormat(book.getCreationHelper().createDataFormat().getFormat("0.00"));
+		
+		XSSFRow header = sheet.createRow(0);
+		//HSSFRow header = sheet.createRow(0);
+		
+		for(int i =0 ;i < File_Headers.size(); i++)
+		{
+			header.createCell(i).setCellValue(File_Headers.get(i));
+			//header.getCell(i).setCellStyle(style);
+		}
+		
+		
+		int inRowCount = 1;
+		int sheet_No = 2;
+		for(int i = 0 ;i<generatettum_list.size() ; i++)
+		{
+			if(inRowCount > 1000)
+			{
+				inRowCount = 1;
+				sheet = workbook.createSheet("Records "+sheet_No);
+				
+				HSSFRow header1 = sheet.createRow(0);
+				
+				for(int k =0 ;k < File_Headers.size(); k++)
+				{
+					header1.createCell(k).setCellValue(File_Headers.get(k));
+					header1.getCell(k).setCellStyle(style);
+				}
+				sheet_No++;
+			}
+		//	HSSFRow header2 = sheet.createRow(inRowCount);
+			XSSFRow header2 = sheet.createRow(inRowCount);
+			Records = generatettum_list.get(i);
+			
+			for(int j = 0 ;j<Records.size(); j++)
+			{
+				header2.createCell(j).setCellValue(Records.get(j));
+			}
+			
+			inRowCount++;
+			
+			
+			
+		}
+		
+		
+		
+		
+	}*/
+	
+	
+	//ADDED BY INT5779 AS ON 14TH MARCH 2018 FOR DOWNLOADING REPORTS
+/*	@Override
+	public Boolean checkfileprocessed(SettlementBean settlementbeanObj)
+	{
+		 String GET_FILES = "";
+		
+		 if(settlementbeanObj.getStsubCategory().equalsIgnoreCase("DOMESTIC") || settlementbeanObj.getStsubCategory().equalsIgnoreCase("ISSUER"))
+		 {
+			 GET_FILES = "SELECT FILEID FROM MAIN_FILESOURCE WHERE FILE_CATEGORY = '"+settlementbeanObj.getCategory()+"' AND (FILE_SUBCATEGORY = '"+settlementbeanObj.getStsubCategory()+"' " +
+			 		" OR FILE_SUBCATEGORY = 'SURCHARGE')";
+		 }
+		 else
+		 {
+			 GET_FILES = "SELECT FILEID FROM MAIN_FILESOURCE WHERE FILE_CATEGORY = '"+settlementbeanObj.getCategory()+"' AND FILE_SUBCATEGORY = '"+settlementbeanObj.getStsubCategory()+"'";
+		 }
+		 List<String> fileids = getJdbcTemplate().query(GET_FILES,new Object[] {} , new RowMapper<String>() {
+  		   @Override
+  		   public String mapRow(ResultSet rs,int row)throws SQLException
+  		   {
+  			   return rs.getString("FILEID");
+  		   }
+  	   });
+		 for(String fileid : fileids)
+		 {
+			 String CHECK_IT = "SELECT COUNT(*) FROM MAIN_FILE_UPLOAD_DTLS WHERE FILEID = '"+fileid+"' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementbeanObj.getDatepicker()+"'"+ 
+					 "AND FILTER_FLAG = (SELECT FILTERATION FROM MAIN_FILESOURCE WHERE FILEID = '"+fileid+"') AND KNOCKOFF_FLAG = (SELECT KNOCKOFF FROM MAIN_FILESOURCE WHERE FILEID = '"+fileid+"')"+
+					 "AND COMAPRE_FLAG = 'Y'";
+			 try
+			  {
+				 if((!fileid.equals("54")) && (!fileid.equals("55")) && (!fileid.equals("41"))){
+					 System.out.println(CHECK_IT);
+					 int count = getJdbcTemplate().queryForObject(CHECK_IT, new Object[]{},Integer.class);
+					 if(count == 0)
+					 {
+						 return false;
+					 }
+				 }
+			 }
+			 catch(Exception e)
+			 {
+				 return false;
+			 }
+		 }
+		 return true;
+	}
+	*/
+	
+	// changes made by int5688 2 May 2018
+	@Override
+	public Boolean checkfileprocessed(SettlementBean settlementbeanObj)
+	{
+		 String GET_FILES = "";
+		
+		 if(settlementbeanObj.getStsubCategory().equalsIgnoreCase("DOMESTIC") || settlementbeanObj.getStsubCategory().equalsIgnoreCase("ISSUER"))
+		 {
+			 GET_FILES = "SELECT FILEID FROM MAIN_FILESOURCE WHERE FILE_CATEGORY = '"+settlementbeanObj.getCategory()+"' AND (FILE_SUBCATEGORY = '"+settlementbeanObj.getStsubCategory()+"' " +
+			 		" OR FILE_SUBCATEGORY = 'SURCHARGE')";
+		 }
+		 else
+		 {
+			 GET_FILES = "SELECT FILEID FROM MAIN_FILESOURCE WHERE FILE_CATEGORY = '"+settlementbeanObj.getCategory()+"' AND FILE_SUBCATEGORY = '"+settlementbeanObj.getStsubCategory()+"'";
+		 }
+		 List<String> fileids = getJdbcTemplate().query(GET_FILES,new Object[] {} , new RowMapper<String>() {
+  		   @Override
+  		   public String mapRow(ResultSet rs,int row)throws SQLException
+  		   {
+  			   return rs.getString("FILEID");
+  		   }
+  	   });
+		 for(String fileid : fileids)
+		 {
+			 String CHECK_IT = "SELECT COUNT(*) FROM MAIN_FILE_UPLOAD_DTLS WHERE FILEID = '"+fileid+"' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementbeanObj.getDatepicker()+"'"+ 
+					 "AND FILTER_FLAG = (SELECT FILTERATION FROM MAIN_FILESOURCE WHERE FILEID = '"+fileid+"') AND KNOCKOFF_FLAG = (SELECT KNOCKOFF FROM MAIN_FILESOURCE WHERE FILEID = '"+fileid+"')"+
+					 "AND COMAPRE_FLAG = 'Y'";
+			 try
+			  {
+				 if((!fileid.equals("54")) && (!fileid.equals("55")) && (!fileid.equals("41") && (!fileid.equals("53") && (!fileid.equals("43"))))){
+					 System.out.println(CHECK_IT);
+					 int count = getJdbcTemplate().queryForObject(CHECK_IT, new Object[]{},Integer.class);
+					 if(count == 0)
+					 {
+						 return false;
+					 }
+				 }
+			 }
+			 catch(Exception e)
+			 {
+				 return false;
+			 }
+		 }
+		 return true;
+	}
+	
+	
+	@Override
+	public void generate_Reports(SettlementBean settlementBeanObj) throws Exception {
+
+    	Connection con;
+        Statement st;
+        ResultSet rset = null;
+        List<String> files = new ArrayList<>();
+        //Row header = sheet.createRow(0);
+       List<List<String>> Records = new ArrayList<>();
+       //ArrayList<Excel_Bean> arr=new ArrayList<Excel_Bean>();
+       OracleConn conn;
+       try {
+    	  
+    	  /* FileOutputStream fos1 = new FileOutputStream(zipFile); 
+    	   ZipOutputStream zos = new ZipOutputStream(fos1); 
+    	   byte[] buffer = new byte[1024];*/
+    	   FileOutputStream fos = null;
+           ZipOutputStream zipOut = null;
+           FileInputStream fis = null;
+    	   
+    	   con = getConnection();
+    	   //1. 	GET FILES FROM main recon sequence table
+    	   String GET_FILES = "SELECT FILENAME FROM MAIN_FILESOURCE WHERE FILE_CATEGORY = '"+settlementBeanObj.getCategory()+"' AND FILE_SUBCATEGORY = '"+settlementBeanObj.getStsubCategory()+"'";
+    	   List<String> Filenames = getJdbcTemplate().query(GET_FILES,new Object[] {} , new RowMapper<String>() {
+    		   @Override
+    		   public String mapRow(ResultSet rs,int row)throws SQLException
+    		   {
+    			   return rs.getString("FILENAME");
+    		   }
+    	   });
+
+    	   //CREATE FOLDERS
+    	   checkNcreateFolder(settlementBeanObj, Filenames);
+    	   SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy");
+
+           java.util.Date date=sdf.parse(settlementBeanObj.getDatepicker());
+
+           sdf=new SimpleDateFormat("dd-MM-yyyy");
+          
+           String stnewDate = sdf.format(date);
+    	   
+           if(settlementBeanObj.getCategory().equals("POS"))
+    	   {
+    		   Filenames.add("C");
+    		   Filenames.add("E");
+    	   }
+    	   
+           
+    	   for(String filename : Filenames)
+    	   {
+    		   String GET_REMARKS = "";
+
+
+    		   //2.	GET HEADERS FROM SETTLEMENT TABLE AND ADD IT IN EXCEL SHEET
+
+    		  // List<String> Column_list  = new ArrayList<>();//getColumnList(stTableName);
+    		   String stTableName = "SETTLEMENT_"+settlementBeanObj.getCategory()+"_"+filename;
+    		   
+    		   if(settlementBeanObj.getCategory().equals("NFS") || settlementBeanObj.getCategory().equals("CASHNET")) {
+					
+					stTableName = "SETTLEMENT_"+settlementBeanObj.getCategory()+"_"+settlementBeanObj.getStsubCategory().substring(0,3)+"_"+filename;
+				}
+    		   List<String> Column_list  = getColumnList(stTableName);
+    		  
+    		   if(settlementBeanObj.getStsubCategory().equals("DOMESTIC") || settlementBeanObj.getStsubCategory().equals("ISSUER"))
+    		   {
+    			 /*  GET_REMARKS = "SELECT DISTINCT DCRS_REMARKS FROM SETTLEMENT_"+settlementBeanObj.getCategory()+"_"+filename+" WHERE TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'" +
+    					   " AND (DCRS_REMARKS LIKE '%"+settlementBeanObj.getStMergerCategory()+"%' OR DCRS_REMARKS LIKE '%"+settlementBeanObj.getCategory()+"_SUR%') " +
+    					   		"AND DCRS_REMARKS NOT LIKE '% (%'";*/
+    			   
+    			  /* GET_REMARKS = "SELECT DISTINCT DCRS_REMARKS FROM "+stTableName+" WHERE TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'" +
+    					   " AND (DCRS_REMARKS LIKE '%"+settlementBeanObj.getStMergerCategory()+"%' OR DCRS_REMARKS LIKE '%"+settlementBeanObj.getCategory()+"_SUR%') " +
+    					   		"AND DCRS_REMARKS NOT LIKE '% (%'";*/
+    			   //COMMENTED PREVIOUS QUERY AND WROTE NEW ONE AS UNRECON REPORT WITH () IS NOT DOWNLOADED
+    			   GET_REMARKS = "select distinct regexp_substr(translate(REGEXP_REPLACE (DCRS_REMARKS, '\', ''),'()',' '),'[^ - ]+',1,1) as DCRS_REMARKS"+
+							" from "+stTableName+"  WHERE (DCRS_REMARKS LIKE '%"+settlementBeanObj.getStMergerCategory()+"%' OR DCRS_REMARKS LIKE '%"+settlementBeanObj.getCategory()+"_SUR%' ) " +
+							"AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'";
+    			   
+    		   }
+    		   else if(settlementBeanObj.getCategory().equals("CARDTOCARD")){
+    			   GET_REMARKS = "select distinct regexp_substr(translate(REGEXP_REPLACE (DCRS_REMARKS, '\', ''),'()',' '),'[^ - ]+',1,1) as DCRS_REMARKS"+
+							" from "+stTableName+"  WHERE  TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"
+							+settlementBeanObj.getDatepicker()+"'";
+    		   }
+    		   else{
+    			   
+    			   
+    		/*	   GET_REMARKS = "SELECT DISTINCT DCRS_REMARKS FROM SETTLEMENT_"+settlementBeanObj.getCategory()+"_"+filename+" WHERE TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'" +
+    					   " AND DCRS_REMARKS LIKE '%"+settlementBeanObj.getStMergerCategory()+"%' AND DCRS_REMARKS NOT LIKE '% (%'";*/
+    			   
+    			  /* GET_REMARKS = "SELECT DISTINCT DCRS_REMARKS FROM "+stTableName+" WHERE TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'" +
+    					   " AND DCRS_REMARKS LIKE '%"+settlementBeanObj.getStMergerCategory()+"%' AND DCRS_REMARKS NOT LIKE '% (%'";*/
+    			   //COMMENTED PREVIOUS QUERY AND WROTE NEW ONE AS UNRECON REPORT WITH () IS NOT DOWNLOADED
+    			   GET_REMARKS = "select distinct regexp_substr(translate(REGEXP_REPLACE (DCRS_REMARKS, '\', ''),'()',' '),'[^ - ]+',1,1) as DCRS_REMARKS"+
+									" from "+stTableName+"  WHERE DCRS_REMARKS LIKE '%"+settlementBeanObj.getStMergerCategory()+"%' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"
+									+settlementBeanObj.getDatepicker()+"'";
+    		   }
+    		   
+    		   if(settlementBeanObj.getCategory().equals("NFS") || settlementBeanObj.getCategory().equals("CASHNET"))
+   			{
+    			 /*  GET_REMARKS = "select   distinct dcrs_remarks    from( "
+							+ "select case substr(dcrs_remarks,1,20) when   'MATCHED_UNSUCCESSFUL' then 'MATCHED_UNSUCCESSFUL'"
+							+ "else dcrs_remarks  end as dcrs_remarks    from  "+stTableName+" "
+							+ ")";*/
+    			   
+    			   GET_REMARKS ="select distinct regexp_substr(translate(REGEXP_REPLACE (DCRS_REMARKS, '\', ''),'()',' '),'[^ - ]+',1,1) as DCRS_REMARKS"+
+							" from "+stTableName+"  where  TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"
+									+settlementBeanObj.getDatepicker()+"' ";
+    			   
+   			}
+    		   
+    		   System.out.println("GET_REMARKS"+GET_REMARKS);
+    		  
+    		   /*con = conn.getconn();
+		st = con.createStatement();
+
+    		   ResultSet rs = st.executeQuery(GET_REMARKS);
+    		   List<String> stRemarks = new ArrayList<>();
+    		   while(rs.next())
+    		   {
+    			   stRemarks.add(rs.getString("DCRS_REMARKS"));
+    		   }*/
+    		   List<String> stRemarks = getJdbcTemplate().query(GET_REMARKS,new Object[]{},new RowMapper<String>() {
+    			   @Override
+    			   public String mapRow(ResultSet rs,int rowcount)throws SQLException
+    			   {
+    				   return rs.getString("DCRS_REMARKS");
+    			   }
+    			   
+			});
+    		   
+    		  
+    		   
+    		   for(String dcrs_remarks : stRemarks)
+    		   {
+    			   /*SessionModel.req.getSession();*/
+    			   
+    			   
+    			   int colcount = 0;
+    			   String headercolumns="";
+    			   for(String headercols : Column_list)
+    			   {
+    				   if(colcount== 0) {
+    					   
+    					   headercolumns=headercols;
+    				   }else {
+    					   
+    					   headercolumns= headercolumns+"|"+headercols;
+    				   }
+    				   colcount++;
+    			   }
+    			   
+    			   
+    			   String stfile_name = filename+"-"+dcrs_remarks+".dat";
+    			   
+    			   String GET_DATA = "";
+    			   
+    			   if(dcrs_remarks.contains("UNRECON") && !settlementBeanObj.getCategory().equals("NFS") && !settlementBeanObj.getCategory().equalsIgnoreCase("CASHNET") )
+    			   {
+    				   GET_DATA = "SELECT * FROM  SETTLEMENT_"+settlementBeanObj.getCategory()+"_"+filename+" WHERE DCRS_REMARKS LIKE '%"+dcrs_remarks
+    						   +"%' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'";    			       				   
+    			   }
+    			   else if(dcrs_remarks.contains("UNMATCHED"))
+    			   {
+    				   if(settlementBeanObj.getCategory().equals("MASTERCARD"))
+    				   {
+    					   GET_DATA = "SELECT * FROM  SETTLEMENT_"+settlementBeanObj.getCategory()+"_"+filename+" WHERE DCRS_REMARKS LIKE '%"+dcrs_remarks
+    						   +"%' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'";  
+    				   }
+    				   else if(settlementBeanObj.getCategory().equals("NFS"))
+    				   {
+    					   GET_DATA = "SELECT * FROM  "+stTableName+" WHERE trim(DCRS_REMARKS) LIKE '%"+dcrs_remarks
+        						   +"%' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'";  
+    				   }
+    				   else{
+    					   GET_DATA = "SELECT * FROM  " +stTableName+" WHERE DCRS_REMARKS like '%"+dcrs_remarks
+        						   +"%' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'";
+    					   
+    				   }
+    			   }
+    			   else
+    			   {
+    				   /*GET_DATA = "SELECT * FROM  SETTLEMENT_"+settlementBeanObj.getCategory()+"_"+filename+" WHERE DCRS_REMARKS = '"+dcrs_remarks
+    						   +"' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'";*/
+    				   
+    				   GET_DATA = "SELECT * FROM  " +stTableName+" WHERE trim(DCRS_REMARKS)='"+dcrs_remarks
+    						   +"' AND TO_CHAR(FILEDATE,'DD/MM/YYYY') = '"+settlementBeanObj.getDatepicker()+"'";
+    			   }
+    			   
+    			   if(settlementBeanObj.getCategory().equals("NFS") && dcrs_remarks.equalsIgnoreCase("MATCHED_UNSUCCESSFUL"))
+    				{
+    					 GET_DATA = "SELECT * FROM "+stTableName +" WHERE trim(DCRS_REMARKS) like '"+dcrs_remarks.trim()+"%' AND TO_DATE(FILEDATE,'DD/MM/YY') = TO_DATE('"+settlementBeanObj.getDatepicker()+"','DD/MM/YY')";
+    					
+    				}
+    			   else if(settlementBeanObj.getCategory().equals("CASHNET") && dcrs_remarks.contains("UNRECON"))  {
+   					
+   					GET_DATA = "SELECT * FROM "+stTableName +" WHERE trim(DCRS_REMARKS) like '"+dcrs_remarks.trim()+"%' AND TO_DATE(FILEDATE,'DD/MM/YY') = TO_DATE('"+settlementBeanObj.getDatepicker()+"','DD/MM/YY')";
+    			   }
+    			   
+    			   System.out.println(GET_DATA);
+    			   PreparedStatement ps = con.prepareStatement(GET_DATA);
+    			   rset = ps.executeQuery();
+    			   File myFile = new File(settlementBeanObj.getStPath()+"//"+stfile_name);
+    			   myFile.createNewFile();
+    			   
+    			   
+    			   try {
+     				 
+    				   BufferedWriter out = new BufferedWriter(new FileWriter(settlementBeanObj.getStPath()+"//"+stfile_name, true));
+    				   
+    				      out.write(headercolumns);
+    				      
+    				      
+    				      while(rset.next())
+    	    			   {
+    	    				  String tabledata="";
+    	    				   for(int i=0;i<Column_list.size();i++)
+    	    				   {
+    	    					   if(i==0) {
+	    	    					   
+    	    						   if(rset.getString(Column_list.get(i)) == null)
+	    	    					   {
+    	    							   tabledata = rset.getString(Column_list.get(i));
+	    	    					   }
+	    	    					   else
+	    	    					   {
+	    	    						   tabledata = rset.getString(Column_list.get(i));
+	    	    					   }
+    	    					   }else{
+    	    						   
+    	    						   if(rset.getString(Column_list.get(i)) == null)
+	    	    					   {
+    	    							   tabledata = tabledata+"|"+ rset.getString(Column_list.get(i));
+	    	    					   }
+	    	    					   else
+	    	    					   {
+	    	    						   tabledata = tabledata +"|"+ rset.getString(Column_list.get(i));
+	    	    					   }
+    	    					   }
+    	    				   }
+    	    				   out.write("\n");
+    	    				   out.write(tabledata);
+    	    				   
+    	    			   }
+    				      
+    					   out.flush();
+    					   out.close();
+     				 
+     				   files.add(settlementBeanObj.getStPath()+"//"+stfile_name);
+     				
+
+     				   
+     			   
+    			   } catch(Exception e)
+     			   {
+     				   System.out.println("eXCEPTION IS IN fileoutputstream "+e);
+     			   }
+    			   
+    			   
+    		   }
+    		  
+    	   }
+    	   
+    	   System.out.println("completed all file creation ");
+		   
+    	   if(settlementBeanObj.getCategory().equals("CARDTOCARD"))
+    	   {
+    		   String path=settlementBeanObj.getStPath();
+    		   System.out.println(path);
+    		   
+    		  boolean val=generateCTF(settlementBeanObj,files);
+    	   }
+		   fos = new FileOutputStream(settlementBeanObj.getStPath()+".zip");
+           zipOut = new ZipOutputStream(new BufferedOutputStream(fos));
+           try
+           {
+        	   for(String filespath : files)
+        	   {
+        		   File input = new File(filespath);
+        		   fis = new FileInputStream(input);
+        		   ZipEntry ze = new ZipEntry(input.getName());
+        		  // System.out.println("Zipping the file: "+input.getName());
+        		   zipOut.putNextEntry(ze);
+        		   byte[] tmp = new byte[4*1024];
+        		   int size = 0;
+        		   while((size = fis.read(tmp)) != -1){
+        			   zipOut.write(tmp, 0, size);
+        		   }
+        		   zipOut.flush();
+        		   fis.close();
+        	   }
+        	   zipOut.close();
+        	 //  System.out.println("Done... Zipped the files...");
+           }
+           catch(Exception fe)
+           {
+        	   System.out.println("Exception in zipping is "+fe);
+           }
+		   
+    	   
+    	   
+    	   
+    	   
+    	 //  zos.close();
+       }catch (Exception e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	}
+       finally{
+    	   try
+    	   {
+    		   if(rset != null)
+    		   {
+    			   rset = null;
+    		   }
+    	   }
+    	   catch(Exception e)
+    	   {
+    		   
+    	   }
+       }
+   
+    }
+
+	
+public boolean checkNcreateFolder(SettlementBean settlementBeanObj,List<String> stFileNames)
+{
+	try
+	{
+		File directory = new File(settlementBeanObj.getStPath());
+		
+		if(!directory.exists())
+		{
+			directory.mkdir();
+		}
+		/*Date date = new Date(settlementBeanObj.getDatepicker());
+		SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yy");
+		String formatteddate = sdf.format(date);
+		System.out.println("formatteddate is "+formatteddate);*/
+		
+		 SimpleDateFormat sdf=new SimpleDateFormat("dd/MM/yyyy");
+
+         java.util.Date date=sdf.parse(settlementBeanObj.getDatepicker());
+
+         sdf=new SimpleDateFormat("dd-MM-yyyy");
+        
+     	String stnewDate = sdf.format(date);
+		
+		String stnewPath = settlementBeanObj.getStPath()+"//"+ stnewDate;
+		
+		//settlementBeanObj.setStPath(stnewPath);
+		
+		directory = new File(stnewPath);
+		if(!directory.exists())
+		{
+			directory.mkdir();
+		}
+		
+		stnewPath = settlementBeanObj.getStPath()+"//"+ stnewDate+"//"+settlementBeanObj.getStMergerCategory();
+		
+		settlementBeanObj.setStPath(stnewPath);
+		
+		directory = new File(stnewPath);
+		if(!directory.exists())
+		{
+			directory.mkdir();
+		}
+		
+		
+		/*for(String stfiles : stFileNames)
+		{
+			stnewPath = settlementBeanObj.getStPath()+"//"+stfiles;
+			directory = new File(stnewPath);
+			if(!directory.exists())
+			{
+				directory.mkdir();
+			}
+		}*/
+		
+		
+	}
+	catch(Exception e)
+	{
+		return false;
+	}
+	return true;
+	
+}
+
+public void DeleteFiles(String stpath)
+{
+	try
+	{
+		//C:\Users\int5779\Desktop\Reports\15-01-2018
+		
+		File directory = new File(stpath);
+		/*if(file.delete())
+		{
+			System.out.println("directory is deleted");
+		}*/
+		if(directory.isDirectory())
+		{
+			File[] files1 = directory.listFiles();
+			
+			for(File getFile : files1)
+			{
+				if(getFile.isDirectory())
+				{
+					String[] myFiles = getFile.list();
+					 for (int i=0; i<myFiles.length; i++) {
+	                       File myFile = new File(getFile, myFiles[i]);
+	                       myFile.delete();
+	                   }
+				}
+				/*else
+				{
+					
+					//deleting a zip file
+					ZipFile zFile = new ZipFile(getFile);
+					zFile.close();
+					File file = new File(getFile.getPath());
+					file.delete();
+				}*/
+					
+				getFile.delete();
+			}
+			
+			directory.delete();
+		}			
+		
+	}
+	catch(Exception e)
+	{
+		System.out.println("Exception e"+e);
+		
+	}
+}
+
+@Override
+public void generate_ipm(String outputString2) throws Exception {
+	// TODO Auto-generated method stub
+	
+}
+
+
+@Override
+public boolean generateCTF(SettlementBean settlementBean, List<String> files) throws IOException {
+	// TODO Auto-generated method stub
+String path=settlementBean.getStPath()+"//Bankaway.ctf";
+String path2=settlementBean.getStPath()+"//";
+//	String path = "D:/Bankaway.ctf";
+	BufferedWriter output = null;
+	OracleConn conn;
+	int row_lenth_1 = 168;
+	int row_lenth_2 = 45;
+	int row_lenth_3 = 21;
+	int count_1=0;
+	int count_2=0;
+	int count_3=0;
+	String julian_date=null;
+	int result_count=0;
+	String result_count_val=null;
+	String sun_val=null;
+	int main_count=0;
+	ArrayList<String> arr_test = new ArrayList<String>();
+	ArrayList<String> arr_test2 = new ArrayList<String>();
+	ArrayList<SettlementTypeBean> arr = new ArrayList<SettlementTypeBean>();
+	/*Scanner scan=new Scanner(System.in);
+	System.out.println("Enter Date in mm/dd/yyyy format :: ");
+	String dt_va=scan.next();
+	System.out.println("Date :: "+dt_va);*/
+	String julian_date1=null;
+	try {
+		conn = new OracleConn();
+		Connection con = conn.getconn();
+		
+		File file = new File(path);
+		output = new BufferedWriter(new FileWriter(file));
+
+		String get_bankrepo = "select * from SETTLEMENT_CARDTOCARD_BANKREPO where DCRS_REMARKS='CARDTOCARD_BANKWAY_MATCED' and TO_CHAR (filedate, 'dd/MM/yyyy') = "
+				+ " TO_CHAR (TO_DATE ('"+settlementBean.getDatepicker()+"', 'dd/MM/YYYY'), 'dd/MM/YYYY')";
+
+		PreparedStatement st = con.prepareStatement(get_bankrepo);
+		ResultSet rs = st.executeQuery();
+
+		while (rs.next()) {
+
+			SettlementTypeBean sb = new SettlementTypeBean();
+			String visa_card_no = rs.getString("VISA_CARD_NO");
+			String mobile_no = rs.getString("MOBILE_NO");
+			String amount1 = rs.getString("AMOUNT");
+			String amount = amount1.replaceAll("[,.]", "");
+			String sol_id = rs.getString("SOL_ID");
+			String debit_acc = rs.getString("DEBIT_ACC");
+			String acc_name = rs.getString("ACC_NAME");
+			String payment_id = rs.getString("PAYMENT_ID");
+			String channel = rs.getString("CHANNEL");
+			String date_time = rs.getString("DATE_TIME");
+			String file_date = rs.getString("FILEDATE");
+			
+			long random_number = Utility.generateRandom();
+			DateFormat inputFormat = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss.S");
+			Date dateinput = inputFormat.parse(rs.getString("FILEDATE"));
+			SimpleDateFormat sdfoffsite1 = new SimpleDateFormat(
+					"yyyy-MM-dd hh:mm:ss.S");
+			DateFormat outputFormat_new = new SimpleDateFormat("ddMMyyyy");
+    		String outputString_new = outputFormat_new.format(dateinput);
+			java.util.Date datecisb;
+
+			datecisb = sdfoffsite1.parse(file_date);
+
+			sdfoffsite1 = new SimpleDateFormat("MM/dd/yyyy");
+
+			System.out.println(sdfoffsite1.format(datecisb));
+
+			String dataenew = sdfoffsite1.format(datecisb);
+			
+			int julian_dt = Utility.convertToJulian(outputString_new);
+			int julian_dt1 = Utility.convertToJulian2(outputString_new);
+			 julian_date = String.valueOf(julian_dt);
+			 julian_date1 = String.valueOf(julian_dt1);
+			String split_dt[] = dataenew.split("/");
+			System.out.println(split_dt[0] + split_dt[1]);
+			String amount_val=Utility.appnd_zeros(amount);
+			System.out.println("12 digit Amount"+ amount_val);
+			String get_acc_name=Utility.appnd_space(acc_name);
+			
+			arr_test.add("06");// 1-2
+			arr_test.add("20");// 3-4
+			arr_test.add(visa_card_no);// 5-20
+			arr_test.add("000");// 21-23
+			arr_test.add("   ");// 24-26
+			//arr_test.add("7421426" + julian_date + random_number);// 27-49
+		    arr_test.add(Utility.get_mod("7421426" + julian_date + random_number));
+			arr_test.add("00000000");// 50-57
+			arr_test.add(split_dt[0] + split_dt[1]);// 58-61
+			arr_test.add("000000000000");// 62-73
+			arr_test.add("   ");// 74-76
+			arr_test.add(amount_val);// 77-88
+			arr_test.add("356");// 89-91
+			arr_test.add(get_acc_name);// 92-116
+			arr_test.add("VISAMONEYTXFR");// 117-129
+			arr_test.add("IN ");// 130-132
+			arr_test.add("6051");// 133-136
+			arr_test.add("00000");// 137-141
+			arr_test.add("   ");// 142-144
+			arr_test.add(" ");// 145
+			arr_test.add(" ");// 146
+			arr_test.add("1");//147
+			arr_test.add("00");// 148-149
+			arr_test.add("9");// 150
+			arr_test.add(" ");// 151
+			arr_test.add("      ");// 152-157
+			arr_test.add(" ");// 158
+			arr_test.add(" ");// 159
+			arr_test.add(" ");// 160
+			arr_test.add(" ");// 161
+			arr_test.add("0");// 162-163
+			arr_test.add(julian_date1);// 164-167
+			arr_test.add("0");// 168
+			
+			//Newly added on 02/12/2018
+			
+			arr_test.add("06");// 1-2
+			arr_test.add("21");// 3-4
+			String sub_str= visa_card_no.substring(0, 6);
+			String concat=sub_str+"4214260000";
+			arr_test.add(concat);// 5-20
+			arr_test.add("00");// 21-23
+			arr_test.add(" ");// 23-24
+			arr_test.add("PYMNT ID NO-");// 25-35
+			arr_test.add(" ");// 36-37
+			arr_test.add(payment_id);// 58-61
+			arr_test.add("                                                          ");// 46-103
+			arr_test.add("000000000000");// 104-115
+			arr_test.add(" ");// 116-117
+			arr_test.add("             ");// 117-129
+			arr_test.add("0");// 130-131
+			arr_test.add("                           ");// 131-157
+			arr_test.add("000000000");// 158-166
+			arr_test.add("  ");// 167-168
+			arr_test.add("06");// 1-2
+			arr_test.add("23");// 3-4
+			arr_test.add("            ");
+			arr_test.add("CRCP");
+		
+			
+			
+		}
+		FileWriter writer = new FileWriter(file);
+		BufferedWriter bw = new BufferedWriter(writer);
+		//arr_test2=arr_test.iterator().next();
+		String bind_rec="";
+		//arr_test.indexOf(i);
+		String bind_2="";
+		String bind_rec1="";
+		
+		String bind_3="";
+		int counter_value=0;
+		for (String str : arr_test) {
+			counter_value++;
+			bw.append(str);
+			//bind_rec=str;
+			//System.out.println("Index value ::"+arr_test.indexOf(str));
+			//bw.append("\n");
+			
+			count_1=count_1+1;
+			System.out.println("Count ::"+count_1);
+			if(str.equals(julian_date1))
+			{
+				bind_rec="";
+				bind_rec=bind_rec+str;
+				//System.out.println("Bind 1 :: "+bind_rec);
+			}
+			if(!bind_rec.equals(""))
+			{  
+				count_3=count_3+1;
+				if(count_3==2)
+				{
+				bind_2=bind_rec+"0";
+				//System.out.println("Bind 2 :: "+bind_2);
+				}
+			}
+			if(str.equals("000000000"))
+			{
+				bind_rec1="";
+				bind_rec1=bind_rec1+str;
+				System.out.println("Bind 1 :: "+bind_rec1);
+			}
+			
+			if(!bind_rec1.equals(""))
+			{  
+				count_3=count_3+1;
+				if(count_3==2)
+				{
+				bind_3=bind_rec1+"  ";
+				//System.out.println("Bind 2 :: "+bind_3);
+				}
+			}
+			//bind_rec=bind_rec+str;
+			if (bind_2.equals(julian_date1+"0")) {
+				bw.append("\n");
+				main_count=main_count+1;
+				bind_2="";
+				count_3=0;
+				bind_rec="";
+				//bw.newLine();
+				/*count_2=count_2+1;
+				if(count_2==1)
+				{
+					bw.append("TEST");
+				}*/
+//				/bw.newLine();
+				count_1=0;
+			}
+			else if(bind_3.equals("000000000  "))
+			{
+				bw.append("\n");
+				main_count=main_count+1;
+				bind_3="";
+				count_3=0;
+				bind_rec1="";
+				bind_2="";
+				count_3=0;
+				bind_rec="";
+				//bw.newLine();
+				/*count_2=count_2+1;
+				if(count_2==1)
+				{
+					bw.append("TEST");
+				}*/
+//				/bw.newLine();
+				count_1=0;
+			}
+			else if(str.equals("CRCP"))
+			{
+				System.out.println("Counter value-->>"+counter_value);
+				System.out.println("Array value-->>"+arr_test.size());
+				if(counter_value!=arr_test.size())
+				{
+				bw.append("\n");
+				}
+				else{
+					 //bw.append(String.format("%s%n", counter_value));
+					 System.out.println("Inside else");
+
+
+				}
+				main_count=main_count+1;
+				
+				bind_3="";
+				count_3=0;
+				bind_rec1="";
+				bind_2="";
+				count_3=0;
+				bind_rec="";
+				//bw.newLine();
+				/*count_2=count_2+1;
+				if(count_2==1)
+				{
+					bw.append("TEST");
+				}*/
+//				/bw.newLine();
+				count_1=0;
+			}
+		}
+		/*main_count=main_count+1;
+		
+		System.out.println("Main Count"+ main_count);
+		String count_val=Integer.toString(main_count);
+		String main_cnt=Utility.auto_append(count_val);
+		int count_6=Integer.parseInt(main_cnt);
+		int main_count2=count_6+1;
+		String count_val2=Integer.toString(main_count2);
+		String main_cnt2=Utility.auto_append(count_val2);
+		int count_7=Integer.parseInt(main_cnt2);*/
+		
+		String get_rec_count="select count(*) as count,sum(to_number(replace((replace(os1.amount,',')),'.'))) as total from SETTLEMENT_CARDTOCARD_BANKREPO os1";
+		PreparedStatement pst=con.prepareStatement(get_rec_count);
+		ResultSet rst=pst.executeQuery();
+		while(rst.next())
+		{
+			/*//result_count=rst.getInt("count");
+			System.out.println("Count"+result_count);
+			String val=Integer.toString(result_count);
+			result_count_val=Utility.auto_append(val);*/
+			sun_val=rst.getString("total");
+			System.out.println("Sum"+sun_val);
+			
+			
+		}
+		/*int get_row1=result_count+1;
+		String val2=Integer.toString(get_row1);
+		String row_count=Utility.auto_append3(val2);
+		int get_count=Integer.parseInt(row_count);
+		int get_row2=get_row1+1;
+		String get_rw=Integer.toString(get_row2);
+		String row_count2=Utility.auto_append3(get_rw);
+		String get_total=Utility.auto_append2(sun_val);*/
+		
+		/*bw.append("9100426365"+julian_date1+"000000000000000"+result_count_val+"000000"+main_cnt+"000000"+"00000001"+row_count+"000000000000000000"+get_total+"000000000000000"+"00000000000000"+"0000000000000000"+"0000000");
+		bw.append("\n");
+		bw.append("9200426365"+julian_date1+"000000000000000"+result_count_val+"000000"+main_cnt2+"000000"+"00000000"+row_count2+"000000000000000000"+get_total+"000000000000000"+"00000000000000"+"0000000000000000"+"0000000");*/
+		
+		bw.close();
+		writer.close();
+		System.out.println("CTF file created");
+	
+
+	// Reading file and getting no. of files to be generated
+	//String inputfile = "D:/ctf_test.txt"; // Source File Name.
+	double nol = 990.0; // No. of lines to be split and saved in each
+							// output file.
+	File file1 = new File(path);
+	Scanner scanner = new Scanner(file1);
+	int count = 0;
+	int count_lines=0;
+	while (scanner.hasNextLine()) {
+		scanner.nextLine();
+		/*if(count_lines==3)
+		{
+		count++;
+		count_lines=0;
+		continue;
+		}
+		count_lines++;*/
+		count++;
+	}
+	System.out.println("Lines in the file: " + count); // Displays no.
+														// of lines in
+														// the input
+														// file.
+
+	double temp = (count / nol);
+	int temp1 = (int) temp;
+	int nof = 0;
+	if (temp1 == temp) {
+		nof = temp1;
+	} else {
+		nof = temp1 + 1;
+	}
+	System.out.println("No. of files to be generated :" + nof); // Displays
+																// no.
+																// of
+																// files
+																// to be
+																// generated.
+
+	// ---------------------------------------------------------------------------------------------------------
+
+	// Actual splitting of file into smaller files
+    int new_count=0;
+    int total_sum=0;
+    int total_rows=0;
+	FileInputStream fstream = new FileInputStream(path);
+	DataInputStream in = new DataInputStream(fstream);
+
+	BufferedReader br = new BufferedReader(new InputStreamReader(in));
+	String strLine;
+
+	for (int j = 1; j <= nof; j++) {
+		total_rows=0;
+		total_sum=0;
+		new_count=0;
+		result_count=0;
+		FileWriter fstream1 = new FileWriter(path2 + j
+				+ ".ctf"); // Destination File Location
+		BufferedWriter out = new BufferedWriter(fstream1);
+		for (int i = 1; i <= nol; i++) {
+			
+			strLine = br.readLine();
+			if (strLine != null) {
+				total_rows++;
+				out.write(strLine);
+				if (i != nol) {
+					out.newLine();
+					if(new_count==3)
+					{
+						result_count++;
+						new_count=0;
+					}
+					try{
+					new_count++;
+					//result_count++;
+					String get_amount=strLine.substring(77, 88);
+					int get_tot=Integer.parseInt(get_amount);
+					total_sum+=get_tot;
+					}catch(Exception e)
+					{
+						e.printStackTrace();
+						continue;
+					}
+				}
+				
+			}else{
+				result_count++;
+				
+				break;
+			}
+			
+		}
+		if(j!=nof)
+		{
+			result_count++;
+			out.newLine();
+			System.out.println("Inside no of lines"+nof);
+		}
+		
+		System.out.println("Total Sum::"+total_sum);
+		total_rows=total_rows+1;
+		
+		System.out.println("Main Count"+ total_rows);
+		String count_val=Integer.toString(total_rows);
+		String main_cnt=Utility.auto_append(count_val);
+		int count_6=Integer.parseInt(main_cnt);
+		int main_count2=count_6+1;
+		String count_val2=Integer.toString(main_count2);
+		String main_cnt2=Utility.auto_append(count_val2);
+		System.out.println("Total count ::"+result_count);
+		String val=Integer.toString(result_count);
+		result_count_val=Utility.auto_append(val);
+		int get_row1=result_count+1;
+		String val2=Integer.toString(get_row1);
+		String row_count=Utility.auto_append3(val2);
+		int get_count=Integer.parseInt(row_count);
+		int get_row2=get_row1+1;
+		String get_rw=Integer.toString(get_row2);
+		String row_count2=Utility.auto_append3(get_rw);
+		String tot_val=Integer.toString(total_sum);
+		String get_total=Utility.auto_append2(tot_val);
+       // out.newLine();
+		out.append("9100426365"+julian_date1+"000000000000000"+result_count_val+"000000"+main_cnt+"000000"+"00000001"+row_count+"000000000000000000"+get_total+"000000000000000"+"00000000000000"+"0000000000000000"+"0000000");
+		out.newLine();
+		out.append("9200426365"+julian_date1+"000000000000000"+result_count_val+"000000"+main_cnt2+"000000"+"00000000"+row_count2+"000000000000000000"+get_total+"000000000000000"+"00000000000000"+"0000000000000000"+"0000000");
+		out.close();
+		files.add(path2 + j
+				+ ".ctf");
+	}
+    
+	in.close();
+
+}
+	
+
+
+	/*
+	 * PrintWriter pw = new PrintWriter(file); for(int
+	 * index=0;index<arr.size();index++) {
+	 * System.out.println("Output ::"+arr.get(index).getVisa_card_no() );
+	 * pw.println(arr.get(index).getVisa_card_no().toString()); }
+	 */
+
+	/*
+	 * String arr1=arr.toString(); for (int k = 0; k < arr.size(); k++){
+	 * output.writ(arr.get(k)); }int count=1; for(String str: arr_test) {
+	 * if(count==2) { output.write("//n"); count=1; } output.write(str);
+	 * System.out.println("CTF file created"); count=count+1; } }
+	 */
+
+	catch (ParseException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+		return false;
+	} catch (ClassNotFoundException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+		return false;
+	} catch (SQLException e1) {
+		// TODO Auto-generated catch block
+		e1.printStackTrace();
+		return false;
+	} catch (IOException e) {
+		e.printStackTrace();
+		System.out.println("Failed to CTF file created");
+	}
+	output.close();
+	return true;
+
+
+}
+
+}

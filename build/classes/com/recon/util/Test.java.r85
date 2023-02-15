@@ -1,0 +1,117 @@
+package com.recon.util;
+
+import java.beans.Statement;
+import java.sql.Connection;
+import java.sql.DriverManager;
+
+
+
+public class Test {
+   public static void main(String[] args) throws ClassNotFoundException{
+	   
+	   
+	 // System.setProperty("oracle.net.tns_admin", "E:/app/Administrator/product/11.2.0/client_1/network/admin/sample/tnsnames.oRA");
+	
+	   
+	 
+	   
+	  /* String amt = "12345";
+	   int lngth = amt.length();
+	   
+	   System.out.println(amt.charAt(lngth-2));
+	   
+	   amt.replaceAll("(\\d)(\\d)", "$1.$2");*/
+	   String a="bbc";
+	   String b="abc";
+	   
+	   String minVal = a!= "bbc" ? a : b;
+	   System.out.println(minVal);
+	   
+	   
+	 /*  
+	 DateFormat format = new SimpleDateFormat("dd-MMM-yyyy"); 
+	 Date filedate;
+	 
+	 try {
+		filedate = format.parse("22-Jun-2017");
+		System.out.println(filedate);
+		format= new SimpleDateFormat("dd/MM/yyyy");
+		System.out.println(format.format(filedate));
+		
+		
+	} catch (ParseException e) {
+		// TODO Auto-generated catch block
+		e.printStackTrace();
+	} */
+	 
+		
+      /*try {	
+         File inputFile = new File("D:\\SUSHANT\\rupay.xml");
+         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+         Document doc = dBuilder.parse(inputFile);
+         
+         doc.getDocumentElement().normalize();
+         System.out.println("Root element :"+ doc.getDocumentElement().getNodeName());
+         NodeList nList = doc.getElementsByTagName("Txn");
+         System.out.println("----------------------------");
+         for (int temp = 0; temp < nList.getLength(); temp++) {
+            Node nNode = nList.item(temp);
+            System.out.println("\nCurrent Element :"+ nNode.getNodeName());
+           
+            if (nNode.getNodeType() == Node.ELEMENT_NODE) {
+               Element eElement = (Element) nNode;
+              
+               System.out.println("nAcqInstCd : " + eElement.getElementsByTagName("nAcqInstCd").item(0).getTextContent());
+               System.out.println("nAmtSet : " + eElement.getElementsByTagName("nAmtSet").item(0).getTextContent());
+               System.out.println("nAmtTxn : " + eElement.getElementsByTagName("nAmtTxn").item(0).getTextContent());
+               System.out.println("nApprvlCd : " + eElement.getElementsByTagName("nApprvlCd").item(0).getTextContent());
+               System.out.println("nAcqInstCd : " + eElement.getElementsByTagName("nARD").item(0).getTextContent());
+               System.out.println("nAmtSet : "  + eElement.getElementsByTagName("nCcyCdSet").item(0).getTextContent());
+               System.out.println("nAmtTxn : " + eElement.getElementsByTagName("nCcyCdTxn").item(0).getTextContent());
+               System.out.println("nApprvlCd : " + eElement.getElementsByTagName("nConvRtSet").item(0).getTextContent());
+               System.out.println("nAcqInstCd : " + eElement.getElementsByTagName("nCrdAcpAddAdrs").item(0).getTextContent());
+               System.out.println("nAmtSet : "  + eElement.getElementsByTagName("nCrdAcptTrmId").item(0).getTextContent());
+               System.out.println("nAmtTxn : " + eElement.getElementsByTagName("nDtSet").item(0).getTextContent());
+               System.out.println("nApprvlCd : " + eElement.getElementsByTagName("nDtTmLcTxn").item(0).getTextContent());
+               System.out.println("nAcqInstCd : " + eElement.getElementsByTagName("nFunCd").item(0).getTextContent());
+               System.out.println("nAmtSet : "  + eElement.getElementsByTagName("nLtPrsntInd").item(0).getTextContent());
+               System.out.println("nAmtTxn : " + eElement.getElementsByTagName("nMTI").item(0).getTextContent());
+               System.out.println("nApprvlCd : " + eElement.getElementsByTagName("nPAN").item(0).getTextContent());
+               System.out.println("nAcqInstCd : " + eElement.getElementsByTagName("nRecNum").item(0).getTextContent());
+               System.out.println("nAmtSet : "  + eElement.getElementsByTagName("nRGCSRcvdDt").item(0).getTextContent());
+               System.out.println("nAmtTxn : " + eElement.getElementsByTagName("nSetDCInd").item(0).getTextContent());
+               System.out.println("nApprvlCd : " + eElement.getElementsByTagName("nTxnDesInstCd").item(0).getTextContent());
+               System.out.println("nAcqInstCd : " + eElement.getElementsByTagName("nTxnOrgInstCd").item(0).getTextContent());
+               System.out.println("nAmtSet : "  + eElement.getElementsByTagName("nUID").item(0).getTextContent());
+               
+               System.out.println("feeeee-----------------------------");
+             int size =  eElement.getElementsByTagName("Fee").getLength();
+             NodeList feeList = eElement.getElementsByTagName("Fee");
+             
+             for(int feeSize=0;feeSize<feeList.getLength();feeSize++) {
+            	 Node node = feeList.item(feeSize);
+            	 if(node.getNodeType() == Node.ELEMENT_NODE){
+            		 
+            		 Element cElement = (Element) node;
+            		 System.out.println("nFeeDCInd : " + cElement.getElementsByTagName("nFeeDCInd").item(0).getTextContent());
+                     System.out.println("nFeeAmt : " + cElement.getElementsByTagName("nFeeAmt").item(0).getTextContent());
+                     System.out.println("nFeeCcy : " + cElement.getElementsByTagName("nFeeCcy").item(0).getTextContent());
+                     System.out.println("nFeeTpCd : "  + cElement.getElementsByTagName("nFeeTpCd").item(0).getTextContent());
+                     System.out.println("nIntrchngCtg : "  + cElement.getElementsByTagName("nIntrchngCtg").item(0).getTextContent());
+            		 
+            	 }
+            	 
+            	 
+             }
+               
+               
+               System.out.println("-------------------------------");
+               
+            }
+         }
+      } catch (Exception e) {
+         e.printStackTrace();
+      }*/
+   }
+}

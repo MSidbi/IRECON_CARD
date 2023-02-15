@@ -1,0 +1,364 @@
+@CHARSET "ISO-8859-1";
+
+/****************************************Common Fields Style *******************************************/
+.date-short{
+	width : 75px;
+}
+
+.date-long {
+	width : 125px;
+}
+
+.date-year {
+	width: 50px;
+}
+.popup{
+	cursor: pointer;
+}
+
+.emply_cd{
+	width : 75px;
+}
+
+.emp_nm{
+	width: 300px;
+}
+
+.auth_nm{
+	width: 200px;
+}
+
+.offc_cd {
+	width: 35px;
+}
+
+.offc_nm {
+	width: 150px;
+}
+.pf_indx{
+	width : 100px;
+}
+
+.pf_or_pnsn{
+	width : 70px;
+}
+
+.city{
+	width: 125px;
+}
+
+.pin{
+	width: 75px;
+}
+
+.age{
+	width: 50px;
+}
+
+.sex{
+	width: 50px;
+}
+
+.actve_yn{
+	width: 50px;
+}
+
+.grd_at_join{
+	width: 50px;
+}
+
+.adhoc_advanc{
+	width : 30px;
+}
+
+.srl_no{
+	width: 50px;
+}
+.rltn{
+	width: 125px;
+}
+.amt_prcnt{
+	width: 50px;
+}
+.prcnt{
+	width: 50px;
+}
+.ln_no{
+	width : 75px;
+}
+
+.ln_cd{
+	width : 30px;
+}
+.amt{
+	width : 150px;
+	text-align: right;
+}
+.status{
+	width : 120px;
+	text-align: left;
+}
+
+.remarks{
+	width : 150px;
+	text-align: left;
+}
+.commit_yn{
+	width: 30px;
+}
+
+.advc_no{
+	width : 100px;
+}
+
+.no_of_inst{
+	width : 50px;
+}
+
+.updt_by, .entry_by {
+	width : 100px;
+}
+
+.dscrptn{
+	width : 400px;
+}
+.char_pos {
+	width : 75px;
+}
+.srch_pattern {
+	width: 250px;
+}
+.header {
+	width: 175px;
+}
+.file_name {
+	width: 175px;
+}
+
+/********************************************************************************************************/
+/* .textArea {
+    border: #a9a9a9 1px solid;
+    overflow: hidden;
+    height: expression( document.getElementById("spnHidden").clientHeight );
+} */
+
+/**************************************Style for Employee Master ***************************************/
+.employee-addrss1 {
+	width: 390px;
+}
+
+.employee-addrss2 {
+	width: 390px;
+}
+
+.employee-city {
+	width: 125px;
+}
+
+.employee-pin {
+	width: 75px;
+}
+
+.employee-d_o_b {
+	width: 75px;
+}
+
+.employee-age {
+	width: 50px;
+}
+
+.employee-sex {
+	width: 50px;
+}
+
+.employee-jn_dt {
+	width: 75px;
+}
+
+.employee-rtr_on {
+	width: 75px;
+}
+
+.employee-actve_yn {
+	width: 50px;
+}
+
+.employee-grd_at_join {
+	width: 50px;
+}
+
+.employee-srl_no{
+	width: 50px;
+}
+
+.employee-amt_prcnt{
+	width: 50px;
+}
+/************************************************************************************************/
+
+/**************************Style for Nominee Pages **********************************************/
+.nominee-emply_cd{
+	width: 75px;
+}
+
+.nominee-name{
+	width: 300px;
+}
+
+.nominee-srl_no{
+	width: 35px;
+}
+
+.nominee-address1{
+	width: 400px;
+}
+
+.nominee-address2{
+	width: 400px;
+}
+
+.nominee-address3{
+	width: 400px;
+}
+
+.nominee-city{
+	width: 125px;
+}
+
+.nominee-pin{
+	width: 75px;
+}
+
+.nominee-rltn{
+	width: 150px;
+}
+
+.nominee-sex{
+	width: 35px;
+}
+
+.nominee-age{
+	width: 75px;
+}
+
+.nominee-amt_prcnt{
+	width: 50px;
+}
+
+/*****************************************************************************************/
+
+/************************************Style for Contribution*******************************/
+.contribution-emply_cd{
+	width: 75px;
+}
+
+.contribution-emp_nm{
+	width: 300px;
+}
+
+.contribution-effctv_dt{
+	width: 75px;
+}
+
+.contribution-emp_amt{
+	width: 125px;
+}
+
+.contribution-bnk_amt{
+	width: 125px;
+}
+
+.contribution-add_amt{
+	width: 125px;
+}
+
+.contribution-ln_cd{
+	width: 50px;
+}
+
+.contribution-rec_amt{
+	width: 125px;
+}
+
+.contribution-advc_off{
+	width: 50px;
+}
+
+.contribution-nm{
+	width: 250px;
+}
+
+.contribution-advc_dt{
+	width: 75px;
+}
+
+.contribution-commit_yn{
+	width: 50px;
+}
+/****************************************************************************************/
+
+/**********************************Style For Loan **************************************/
+.loan-loan_no{
+	width : 75px;
+}
+
+.loan-loan_cd{
+	width : 50px;
+}
+
+.loan-amt_snc{
+	width : 150px;
+}
+
+.loan-snc_dt{
+	width : 75px;
+}
+
+.loan-addtn_amt{
+	width : 150px;
+}
+
+.loan-gross_amt{
+	width : 150px;
+}
+
+.loan-advc_no {
+	width: 100px;
+}
+
+.loan-advc_dt{
+	width : 75px;
+}
+
+.loan-no_of_inst{
+	width : 75px;
+}
+
+.loan_rec_till_dt{
+	width : 150px;
+}
+
+.loan-strt_dt{
+	width: 75px;
+}
+
+.loan-end_dt{
+	width : 75px;
+}
+
+/****************************************************************************************/
+
+
+/*********************************Style for Withdrawal***********************************/
+
+
+/************************************Util Styles ****************************************/
+button,input[type="button"],input[type="submit"] {
+	/*padding: 2px;
+	width: 70px;*/
+	width: 170px;
+}
+
+input[type="text"]{
+	padding: 2px;
+}

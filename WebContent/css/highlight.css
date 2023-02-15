@@ -1,0 +1,65 @@
+body.hl {
+	background-color: #FFFFFF;
+}
+
+pre.hl {
+	background-color: #FFFFFF;
+	border: 1px solid #CCCCCC;
+	color: #323232;
+	font-family: 'Courier New';
+	font-size: 12px;
+	overflow: auto;
+	padding: 5px;
+}
+
+.hl.num {
+	color: #1094A0;
+}
+
+.hl.esc {
+	color: #DC6816;
+}
+
+.hl.str {
+	color: #1094A0;
+}
+
+.hl.pps {
+	color: #1094A0;
+}
+
+.hl.slc {
+	color: #969696;
+}
+
+.hl.com {
+	color: #969696;
+}
+
+.hl.ppc {
+	color: #69C73A;
+}
+
+.hl.opt {
+	color: #323232;
+}
+
+.hl.lin {
+	color: #969696;
+}
+
+.hl.kwa {
+	color: #3B6AC8;
+}
+
+.hl.kwb {
+	color: #A00050;
+}
+
+.hl.kwc {
+	color: #00A150;
+}
+
+.hl.kwd {
+	color: #C73A69;
+}

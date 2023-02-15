@@ -1,0 +1,853 @@
+package com.recon.dao.impl;
+
+import static com.recon.util.GeneralUtil.ADD_COMPARE_DETAILS;
+import static com.recon.util.GeneralUtil.GET_FILEID;
+import static com.recon.util.GeneralUtil.GET_ID;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Types;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import oracle.jdbc.driver.OracleTypes;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.core.BatchPreparedStatementSetter;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.SqlOutParameter;
+import org.springframework.jdbc.core.SqlParameter;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.jdbc.object.StoredProcedure;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+import com.recon.dao.ISourceDao;
+import com.recon.model.CompareSetupBean;
+import com.recon.model.ConfigurationBean;
+import com.recon.util.demo;
+
+@Component
+public class SourceDAoImpl extends JdbcDaoSupport implements ISourceDao {
+	
+	public final String FILE_ID = "file_id";
+	public final String CATEGORY = "category";
+	public final String FILE_NAME = "file_name";
+	public final String ENTRY_BY = "Entry_By";
+	public final String ID = "i_id";
+	public final String TABLE_NAME = "table_name";
+	private static final String O_ERROR_CODE="o_error_code";
+	private static final String O_ERROR_MESSAGE="o_error_message";
+    private PlatformTransactionManager transactionManager;
+    
+    String MAIN_KNOCKOFF_CRITERIA= "Insert into MAIN_KNOCKOFF_CRITERIA (REVERSAL_ID,FILE_ID,HEADER,ENTRY_BY,ENTRY_DATE,PADDING,START_CHARPOSITION,CHAR_SIZE,HEADER_VALUE,CONDITION)"
+			+ "values (?,?,?,?,sysdate,?,?,?,?,?)";
+	
+	String MAIN_REVERSAL_DETAIL= "Insert into MAIN_REVERSAL_DETAIL (REVERSAL_ID,FILE_ID,CATEGORY,HEADER,VALUE,ENTRY_BY,ENTRY_DATE)"
+			+ "values (?,?,?,?,?,?,sysdate)";
+	
+	String MAIN_REVERSAL_PARAMETERS="Insert into MAIN_REVERSAL_PARAMETERS (REVERSAL_ID,FILE_ID,HEADER,VALUE,ENTRY_BY,ENTRY_DATE)"
+			+ "values (?,?,?,?,?,sysdate)";
+
+
+	private int id;
+	
+	@SuppressWarnings("resource")
+	public void setTransactionManager() throws Exception {
+		logger.info("***** SourceDAoImpl.setTransactionManager Start ****");
+		   try{
+		  
+			  
+		   ApplicationContext context= new ClassPathXmlApplicationContext();
+		   context = new ClassPathXmlApplicationContext("/resources/bean.xml");
+		 
+		   logger.info("in settransactionManager");
+		   transactionManager = (PlatformTransactionManager) context.getBean("transactionManager"); 
+		   logger.info(" settransactionManager completed");
+		   logger.info("***** SourceDAoImpl.setTransactionManager End ****");
+		   ((ClassPathXmlApplicationContext) context).close();
+		   }catch (Exception ex) {
+			   demo.logSQLException(ex, "SourceDAoImpl.setTransactionManager");
+				 logger.error(" error in SourceDAoImpl.setTransactionManager", new Exception("SourceDAoImpl.setTransactionManager",ex));
+				 throw ex;
+		   }
+		   
+		   
+	   }
+
+
+	@Override
+	public List<ConfigurationBean> getFileDetails() throws Exception {
+
+		 logger.info("***** SourceDAoImpl.getFileDetails Start ****");
+		List<ConfigurationBean> filelist = null;
+		
+		try {
+			
+			String query="SELECT filesrc.Fileid as inFileId ,filesrc.file_category as stCategory,filesrc.file_subcategory as stSubCategory, filesrc.FileName as stFileName ,filesrc.dataseparator ,filesrc.rddatafrm ,filesrc.charpatt,"
+					+ " filesrc.Activeflag as activeFlag  "
+					+ " FROM Main_FILESOURCE filesrc ";
+									/*+ " WHERE filesrc.ActiveFlag='A' ";*/
+				
+			logger.info("query" +query);
+			
+		/*	rs = oracleConn.executeQuery(query);*/
+			
+			/*while(rs.next()){
+				
+				FTPBean ftpBean = new FTPBean();
+				ftpBean.setFileId(rs.getInt("Fileid"));
+				ftpBean.setFileName(rs.getString("FileName"));
+				
+				ftpFileList.add(ftpBean);
+				
+				
+			}*/
+			
+			filelist = getJdbcTemplate().query(query,new BeanPropertyRowMapper(ConfigurationBean.class));
+			 logger.info("***** SourceDAoImpl.getFileDetails End ****");
+		}catch (Exception ex) {
+			
+			demo.logSQLException(ex, "SourceDAoImpl.getFileDetails");
+			 logger.error(" error in SourceDAoImpl.getFileDetails", new Exception("SourceDAoImpl.getFileDetails",ex));
+			 throw ex;
+		}
+		
+		
+		
+		return filelist;
+	
+	}
+
+	@Override
+	public boolean updateFileDetails(ConfigurationBean ftpBean) throws Exception {
+		 logger.info("***** SourceDAoImpl.updateFileDetails Start ****");
+		try {
+			boolean result = false;
+			int count =0;
+			String query="";
+			
+			logger.info("logger.info(ftpBean)"+ftpBean);
+			
+			if(ftpBean.getInFileId()!=0) {
+				
+				logger.info("into the if condition");
+				
+				logger.info("flag"+ftpBean.getActiveFlag());
+				count = getJdbcTemplate().update(
+			                "UPDATE Main_fileSource "
+			                + "	set FileName = ? ,dataseparator =? , ActiveFlag=? ,rddatafrm=?,charpatt=?  "
+			                + " WHERE fileid = ?", 
+			                ftpBean.getStFileName(),ftpBean.getDataSeparator(), ftpBean.getActiveFlag() ,ftpBean.getRdDataFrm(),ftpBean.getCharpatt(),ftpBean.getInFileId());
+				logger.info("count"+count);
+				
+				
+				if(count>0) {
+					
+					logger.info("Data updated successfully");
+					result=true;
+				}else{
+					
+					logger.info("Data not updated.");
+					result = false;
+				}
+				
+			}
+			
+			 logger.info("***** SourceDAoImpl.updateFileDetails End ****");
+			return result;
+		}catch(Exception ex) {
+			
+			demo.logSQLException(ex, "SourceDAoImpl.updateFileDetails");
+			 logger.error(" error in SourceDAoImpl.updateFileDetails", new Exception("SourceDAoImpl.updateFileDetails",ex));
+			 //throw ex;
+			return false;
+		}
+		
+		
+	}
+
+	@Override
+	public boolean addFileSource(ConfigurationBean configBean) throws Exception {
+
+		 logger.info("***** SourceDAoImpl.addFileSource Start ****");
+		boolean result= false;
+		String sql="INSERT into MAIN_FILESOURCE (FILEID,FILENAME,TABLENAME,ACTIVEFLAG,DATASEPARATOR,RDDATAFRM,CHARPATT,FILE_CATEGORY,FILE_SUBCATEGORY,FILTERATION,KNOCKOFF) values(?,?,?,?,?,?,?,?,?,?,?)";
+		
+		setTransactionManager();
+		TransactionDefinition definition = new DefaultTransactionDefinition();
+		TransactionStatus status = transactionManager.getTransaction(definition);
+		String categ=configBean.getStCategory();
+		logger.info(categ);
+		String headers=null;
+		try {
+			
+			String tablename="";
+			
+			if(configBean.getPrev_table()!=null && configBean.getPrev_tblFlag().equals("Y")) {
+				
+				tablename = configBean.getPrev_table();
+				
+			}else{
+				
+				tablename =  configBean.getStFileName()+"_"+configBean.getStCategory()+"_RAWDATA";
+				logger.info(tablename);
+			}
+			
+			logger.info(sql+configBean.getInFileId()+configBean.getStFileName()+configBean.getStFileName()+configBean.getActiveFlag()+configBean.getDataSeparator());
+			int value = getJdbcTemplate().update(sql,new Object[]{configBean.getInFileId(),configBean.getStFileName(),tablename
+					,configBean.getActiveFlag(),configBean.getDataSeparator(),configBean.getRdDataFrm(),configBean.getCharpatt(),configBean.getStCategory(),configBean.getStSubCategory(),
+					configBean.getClassify_flag(),configBean.getKnock_offFlag()});
+			
+			if(value>0 ){
+				
+				 if( configBean.getPrev_tblFlag().equals("N")) {
+				
+				//  Creating a user table.
+				
+				String query="create table "+configBean.getStFileName()+"_"+configBean.getStCategory()+"_RAWDATA"+" (";
+				String parameter="";
+				String params[] = configBean.getStHeader().split(",");
+				
+				for(int i=0;i<params.length;i++){
+					
+						parameter=parameter+params[i].toUpperCase()+" varchar2(500),";
+					
+				
+				}
+				
+			
+				parameter= parameter+"PART_ID varchar2(2),";
+				parameter= parameter+"DCRS_TRAN_NO number,";
+				parameter= parameter+"NEXT_TRAN_DATE date,";
+				parameter = parameter + " CreatedDate date Default sysdate,";
+				parameter = parameter + " CreatedBy varchar2(500),";
+				parameter = parameter + " FILEDATE date Default null";
+				query=query+parameter+")";
+				
+				logger.info(query);
+				
+				getJdbcTemplate().execute(query);
+				
+				// Data Insert into  MAIN_FILEHEADERS
+				
+				String hdrquery = "INSERT into MAIN_FILEHEADERS (HEADERID , FILEID,Columnheader) values(((SELECT MAX(HEADERID) FROM  MAIN_FILEHEADERS)+1),?,?)";
+				String header = configBean.getStHeader();
+				value = getJdbcTemplate().update(hdrquery, new Object[]{configBean.getInFileId(),header.replace(" ", "_")});
+				if(value>0){
+					logger.info("Headers data inserted");
+					transactionManager.commit(status); 
+					result= true;
+				} else {
+					logger.info("Headers data not inserted");
+					transactionManager.rollback(status);
+					result = false;
+				}
+				
+				 } else {
+					 
+					 
+						 headers = getJdbcTemplate().queryForObject("(SELECT COLUMNHEADER from main_fileheaders where fileid = (select * from(select fileid from main_filesource where upper(tablename) ='"+configBean.getPrev_table().toUpperCase()+"' order by fileid ) where rownum =1))", String.class);
+					 
+					 logger.info(configBean.getPrev_table().toUpperCase());
+					 String query = "insert into MAIN_FILEHEADERS (HEADERID , FILEID,Columnheader)"
+					 		+ " values(((SELECT MAX(HEADERID) FROM  MAIN_FILEHEADERS)+1),"+configBean.getInFileId()+",'"+headers+"')";
+					 
+					 
+					 int count = getJdbcTemplate().update(query);
+					 
+					 if(count>0) {
+						 
+						 logger.info("Headers data inserted");
+							transactionManager.commit(status);
+						 result = true;
+						 
+					 }else {
+						 
+						 logger.info("Headers data not inserted");
+						 transactionManager.rollback(status);
+						 result= false;
+					 }
+					 
+				 }
+				 logger.info("***** SourceDAoImpl.addFileSource End ****");
+				
+			}else {
+				
+				result=false;
+			}
+			
+			
+		}catch(Exception ex) {
+			
+			demo.logSQLException(ex, "SourceDAoImpl.addFileSource");
+			 logger.error(" error in SourceDAoImpl.addFileSource", new Exception("SourceDAoImpl.addFileSource",ex));
+			transactionManager.rollback(status);
+			result=false;
+			
+		}
+		
+		
+		return result;
+	
+	}
+
+	@Override
+	public int getFileId(ConfigurationBean configBean) {
+		try {
+			int i =  getJdbcTemplate().queryForObject(GET_FILEID, new Object[] {  },Integer.class);			
+			return i;
+		} catch (Exception e) {
+			throw e;
+		}
+	}
+
+	@Override
+	public boolean chkTblExistOrNot(ConfigurationBean configBean) throws Exception {
+		 logger.info("***** SourceDAoImpl.chkTblExistOrNot Start ****");
+		try {
+			
+			//check Filename exist or not
+			
+			String filesql="SELECT count(*) FROM Main_FileSource WHERE upper (Filename) ='"+configBean.getStFileName().toUpperCase()+"'"
+					+ " AND upper(FILE_CATEGORY) ='"+configBean.getStCategory().toUpperCase()+"' AND upper(FILE_SUBCATEGORY)='"+configBean.getStSubCategory()+"' ";
+			
+			int filerowNum=0;
+			
+			logger.info(filesql);
+			
+			
+			filerowNum =  getJdbcTemplate().queryForObject(filesql, Integer.class);
+			logger.info(filesql);
+			
+			
+			
+			
+			
+			//check table exist or not
+			
+			int rowNum=0;
+			
+			if(configBean.getPrev_tblFlag().equals("N")) {
+				
+				String sql="SELECT count (*) FROM tab WHERE tname  = '"+configBean.getStFileName().toUpperCase()+"_"+configBean.getStCategory()+"_RAWDATA'";
+				rowNum =  getJdbcTemplate().queryForObject(sql, Integer.class);			
+				logger.info(sql);
+			}
+			logger.info("***** SourceDAoImpl.chkTblExistOrNot End ****");
+			if(rowNum > 0 && filerowNum >0){
+				
+				return false;
+			}else{
+				
+				return true;
+			}
+			
+		} catch (Exception e) {
+			
+			demo.logSQLException(e, "SourceDAoImpl.chkTblExistOrNot");
+			 logger.error(" error in SourceDAoImpl.chkTblExistOrNot", new Exception("SourceDAoImpl.chkTblExistOrNot",e));
+			return false;
+		}
+	}
+
+	@Override
+	public boolean addConfigParams(ConfigurationBean configBean) throws Exception  {
+		logger.info("***** SourceDAoImpl.addConfigParams Start ****");
+		setTransactionManager();
+		TransactionDefinition definition = new DefaultTransactionDefinition();
+		TransactionStatus status = transactionManager.getTransaction(definition);
+		//GET ID FROM MASTER TABLE AND THEN INCREMENT IT
+		try{
+				id =  (getJdbcTemplate().queryForObject(GET_ID, new Object[] {  },Integer.class))+1;		
+				
+				Map<String, Object> inParams = new HashMap<String, Object>();
+				
+				//CHANGES MADE BY INT5779 FOR INSERTING PROPER CATEGORY IN DB
+				//String category = configBean.getStSubCategory() != "" ? configBean.getStSubCategory()+"_"+configBean.getStCategory() : configBean.getStCategory();
+				String category = configBean.getStSubCategory() != "" ? configBean.getStCategory()+"_"+configBean.getStSubCategory() : configBean.getStCategory();
+				logger.info("CATEGORY IS "+configBean.getStCategory());
+				logger.info("subcategory is "+configBean.getStSubCategory());
+				
+				inParams.put(FILE_ID , configBean.getInFileId());
+				inParams.put(FILE_NAME, configBean.getStFileName());
+				inParams.put(CATEGORY,category );
+				inParams.put(ID, id);
+				inParams.put(TABLE_NAME, (configBean.getStFileName()));
+				inParams.put(ENTRY_BY, configBean.getStEntry_By());
+				
+				logger.info(configBean.getInFileId());
+				logger.info(configBean.getStFileName());
+				logger.info(category);
+				logger.info(id);
+				logger.info(configBean.getStFileName());
+				logger.info(configBean.getStEntry_By());
+				
+				addCompareConfigParams addcompareparams = new addCompareConfigParams(getJdbcTemplate());
+				Map<String, Object> outParams = addcompareparams.execute(inParams);
+
+				if(outParams.get(O_ERROR_MESSAGE) != null && Integer.parseInt(String.valueOf(outParams.get(O_ERROR_CODE))) != 0){
+				
+					logger.info(outParams.get(O_ERROR_MESSAGE));
+					return false;
+				}
+				
+				//ADDING VALUES IN MAIN_COMPARE_DETAILS TABLE
+				List<ConfigurationBean> comp_dtl_list = new ArrayList<ConfigurationBean>();
+				comp_dtl_list = configBean.getComp_dtl_list();
+				
+				List<ConfigurationBean> clasify_dtl_list = new ArrayList<ConfigurationBean>();
+				clasify_dtl_list = configBean.getClasify_dtl_list();
+				
+				
+				insertBatch(clasify_dtl_list,configBean);
+				
+				if(configBean.getKnock_offFlag().equals("Y")) {
+					
+					insertKnockOffBatch(comp_dtl_list, configBean);
+					
+				}
+				
+				logger.info("***** SourceDAoImpl.addConfigParams End ****");
+				
+				return true;
+			
+				
+				
+		}catch(Exception ex) {
+			
+			demo.logSQLException(ex, "SourceDAoImpl.addConfigParams");
+			 logger.error(" error in SourceDAoImpl.addConfigParams", new Exception("SourceDAoImpl.addConfigParams",ex));
+			
+			return false;
+			
+		}
+		
+	}
+
+	public void insertBatch(final List<ConfigurationBean> comp_dtl_list,
+			final ConfigurationBean configurationBean) {
+		logger.info("***** SourceDAoImpl.insertBatch Start ****");
+		/** Passing Sql query. */
+		getJdbcTemplate().batchUpdate(ADD_COMPARE_DETAILS,
+				new BatchPreparedStatementSetter() {
+
+					@Override
+					public void setValues(PreparedStatement ps, int j)
+							throws SQLException {
+
+						ConfigurationBean configbean = comp_dtl_list.get(j);
+
+						
+						if(configbean.getStHeader()!=null) {
+						ps.setInt(1, id);
+						ps.setInt(2, configurationBean.getInFileId());
+						logger.info(configurationBean.getInFileId());
+						ps.setString(3, configbean.getStHeader());
+						ps.setString(4, configbean.getStSearch_Pattern());
+						ps.setString(5, configbean.getStPadding());
+						logger.info("getStPadding"+configbean.getStPadding());
+						// ps.setInt(6, configbean.getInChar_Position());
+						ps.setInt(6, configbean.getInStart_Char_Position());
+						ps.setInt(7, configbean.getInEnd_char_position());
+						ps.setString(8, configbean.getCondition());
+						ps.setString(9,configbean.getStEntry_By() );
+						ps.setTimestamp(10,new java.sql.Timestamp(
+								new java.util.Date().getTime()));
+						logger.info(id);
+						logger.info(configurationBean.getInFileId());
+						logger.info(configbean.getStHeader());
+						logger.info( configbean.getStSearch_Pattern());
+						logger.info(configbean.getStPadding());
+						logger.info(configbean.getInStart_Char_Position());
+						logger.info(configbean.getInEnd_char_position());
+						logger.info(configurationBean.getStEntry_By());
+						logger.info(new java.sql.Timestamp(
+								new java.util.Date().getTime()));
+						logger.info(configbean.getCondition());
+						
+						}
+
+					}
+
+					@Override
+					public int getBatchSize() {
+						return comp_dtl_list.size();
+					}
+				});
+		logger.info("***** SourceDAoImpl.insertBatch End ****");
+	}
+	
+
+	public void insertKnockOffBatch(final List<ConfigurationBean> comp_dtl_list,
+			final ConfigurationBean configurationBean) throws Exception {
+		
+		logger.info("***** SourceDAoImpl.insertKnockOffBatch Start ****");
+		String query="SELECT CASE WHEN  (SELECT MAX(REVERSAL_ID) FROM MAIN_REVERSAL_DETAIL) is null then 0 else (SELECT MAX(REVERSAL_ID) FROM MAIN_REVERSAL_DETAIL) end as FLAG from dual";
+				//"SELECT MAX(REVERSAL_ID) FROM MAIN_REVERSAL_DETAIL";
+		
+		id =  (getJdbcTemplate().queryForObject(query, new Object[] {  },Integer.class))+1;	
+		logger.info("id"+id);
+
+		setTransactionManager();
+		TransactionDefinition definition = new DefaultTransactionDefinition();
+		TransactionStatus status = transactionManager.getTransaction(definition);
+		try {
+			
+			insertMAIN_REVERSAL_DETAIL(comp_dtl_list, configurationBean);
+			insertMAIN_REVERSAL_PARAMETERS(comp_dtl_list, configurationBean);
+			insertMAIN_KNOCKOFF_CRITERIA(comp_dtl_list, configurationBean);
+			transactionManager.commit(status);
+			}catch(Exception ex) {
+				
+				transactionManager.rollback(status);
+				demo.logSQLException(ex, "SourceDAoImpl.insertKnockOffBatch");
+				 logger.error(" error in SourceDAoImpl.insertKnockOffBatch", new Exception("SourceDAoImpl.insertKnockOffBatch",ex));
+				
+			}
+		
+		logger.info("***** SourceDAoImpl.insertKnockOffBatch End ****");
+	}
+	
+	
+	
+	public void insertMAIN_REVERSAL_DETAIL(final List<ConfigurationBean> comp_dtl_list,
+			final ConfigurationBean configurationBean){
+		logger.info("***** SourceDAoImpl.insertMAIN_REVERSAL_DETAIL Start ****");
+		//ConfigurationBean configbean = null;
+		for(final ConfigurationBean configbean:comp_dtl_list ){
+		
+			logger.info("forconfigbean.getKnockoff_col()"+configbean.getKnockoff_col());
+			if(configbean.getKnockoff_OrgVal()!=null) {
+				
+			//	String category = configurationBean.getStSubCategory() != "" ? configurationBean.getStSubCategory()+"_"+configurationBean.getStCategory() : configurationBean.getStCategory();
+				String category = configurationBean.getStSubCategory() != "" ? configurationBean.getStCategory()+"_"+configurationBean.getStSubCategory() : configurationBean.getStCategory();
+				
+				logger.info(category);
+				getJdbcTemplate().update("Insert into MAIN_REVERSAL_DETAIL (REVERSAL_ID,FILE_ID,CATEGORY,HEADER,VALUE,ENTRY_BY,ENTRY_DATE)"
+						+ "values ("+id+","+configurationBean.getInFileId()+",'"+category+"','"+configbean.getKnockoff_col()+"', '"+configbean.getKnockoff_OrgVal()+"','"+configurationBean.getStEntry_By()+"',sysdate)");
+				
+			}
+		
+		}
+		logger.info("***** SourceDAoImpl.insertMAIN_REVERSAL_DETAIL End ****");
+	}
+	
+
+	public void insertMAIN_REVERSAL_PARAMETERS(final List<ConfigurationBean> comp_dtl_list,
+			final ConfigurationBean configurationBean){
+		
+		logger.info("***** SourceDAoImpl.insertMAIN_REVERSAL_PARAMETERS Start ****");
+		for(final ConfigurationBean configbean:comp_dtl_list ){
+		
+			if(configbean.getKnockoff_comprVal()!=null) {
+				
+				getJdbcTemplate().update("Insert into MAIN_REVERSAL_PARAMETERS (REVERSAL_ID,FILE_ID,HEADER,VALUE,ENTRY_BY,ENTRY_DATE)values ("+id+", "+configurationBean.getInFileId()+",'"+configbean.getKnockoff_col()+"','"+configbean.getKnockoff_comprVal()+"','"+configurationBean.getStEntry_By()+"',sysdate )");
+				
+				
+			}
+		
+		}
+		
+		logger.info("***** SourceDAoImpl.insertMAIN_REVERSAL_PARAMETERS End ****");
+		
+	}
+
+	
+
+	public void insertMAIN_KNOCKOFF_CRITERIA(final List<ConfigurationBean> comp_dtl_list,
+			final ConfigurationBean configurationBean){
+		
+		logger.info("***** SourceDAoImpl.insertMAIN_KNOCKOFF_CRITERIA Start ****");
+		for(final ConfigurationBean configbean:comp_dtl_list ){
+		
+			if(configbean.getKnockoff_header()!=null) {
+				
+			
+		
+			/*getJdbcTemplate().update("Insert into MAIN_KNOCKOFF_CRITERIA (REVERSAL_ID,FILE_ID,HEADER,ENTRY_BY,ENTRY_DATE,PADDING,START_CHARPOSITION,CHAR_SIZE,HEADER_VALUE,CONDITION)"
+					+ "values ("+id+", "+configurationBean.getInFileId()+",'"+configbean.getKnockoff_header()+"','"+configurationBean.getStEntry_By()+"',sysdate,'"+configbean.getKnockoff_stPadding()+"','"+configbean.getKnockoffEnd_char_pos()+"','"+configbean.getKnockoffStart_Char_Pos()+"','"+configbean.getKnockoffSrch_Pattern()+"','"+configbean.getKnockoff_condition()+"')");
+		*/
+				//modified BY INT5779 FOR IMPROPER END AND START CHAR POS
+			getJdbcTemplate().update("Insert into MAIN_KNOCKOFF_CRITERIA (REVERSAL_ID,FILE_ID,HEADER,ENTRY_BY,ENTRY_DATE,PADDING," +
+					"START_CHARPOSITION,CHAR_SIZE,HEADER_VALUE,CONDITION)"
+						+ "values ("+id+", "+configurationBean.getInFileId()+",'"+configbean.getKnockoff_header()+"','"
+					+configurationBean.getStEntry_By()+"',sysdate,'"+configbean.getKnockoff_stPadding()+"','"
+						+configbean.getKnockoffStart_Char_Pos()+"','"+configbean.getKnockoffEnd_char_pos()+"','"
+					+configbean.getKnockoffSrch_Pattern()+"','"+configbean.getKnockoff_condition()+"')");
+			
+				
+			}
+		}
+		
+		logger.info("***** SourceDAoImpl.insertMAIN_KNOCKOFF_CRITERIA End ****");
+		
+	}
+	
+	private class addCompareConfigParams extends StoredProcedure {
+		private static final String add_config_params = "ADD_COMPARE_DATA";
+		
+
+		public addCompareConfigParams(JdbcTemplate jdbcTemplate) {
+			super(jdbcTemplate, add_config_params);
+			setFunction(false);
+			declareParameter(new SqlParameter(FILE_ID, OracleTypes.INTEGER));
+			declareParameter(new SqlParameter(FILE_NAME, OracleTypes.VARCHAR));
+			declareParameter(new SqlParameter(CATEGORY, OracleTypes.VARCHAR));
+			declareParameter(new SqlParameter(ID, OracleTypes.INTEGER));
+			declareParameter(new SqlParameter(TABLE_NAME, OracleTypes.VARCHAR));
+			declareParameter(new SqlParameter(ENTRY_BY, OracleTypes.VARCHAR));
+			declareParameter(new SqlOutParameter(O_ERROR_CODE,
+					OracleTypes.INTEGER));
+			declareParameter(new SqlOutParameter(O_ERROR_MESSAGE,
+					OracleTypes.VARCHAR));
+			compile();
+
+		}
+	}
+
+
+
+
+	@Override
+	public String getHeaderList(int fileId) {
+		logger.info("***** SourceDAoImpl.getHeaderList Start ****");
+		String sql="SELECT columnheader FROM main_fileheaders WHERE fileid  = "+fileId+"";
+		String hedrlist = null;		
+		logger.info("sql"+sql);
+		hedrlist = getJdbcTemplate().queryForObject(sql,String.class);
+		
+		logger.info(hedrlist);
+		logger.info("***** SourceDAoImpl.getHeaderList End ****");
+		return hedrlist;
+	}
+
+
+	@Override
+	public ArrayList<ConfigurationBean> getCompareDetails(int fileId,
+			String category,String subcat) throws Exception {
+		logger.info("***** SourceDAoImpl.getCompareDetails Start ****");
+		subcat = subcat== null ? "" : subcat; 
+		ArrayList<ConfigurationBean> configurationBeans= null;
+		try{
+			String stcategory = !(subcat.equals("-"))?category+"_"+subcat: category;
+		String sql = "SELECT mcompdtl.File_header as stHeader ,mcompdtl.SEARCH_PATTERN as stSearch_Pattern , "
+				+ " mcompdtl.PADDING as stPadding ,mcompdtl.START_CHARPOSITION as inStart_Char_Position,"
+				+ " mcompdtl.END_CHARPOSITION as inEnd_char_position,  mcompm.category as stCategory ,mcompdtl.CONDITION as condition "
+				+ " FROM Main_Compare_detail mcompdtl INNER JOIN main_Compare_master mcompm"
+				+ " ON mcompdtl.id = mcompm.ID"
+				+ " WHERE mcompdtl.FILE_ID="+fileId+" and mcompm.category = '"+stcategory+"' ";
+		
+		logger.info(sql);
+		
+		logger.info("***** SourceDAoImpl.getCompareDetails End ****");
+		 configurationBeans = (ArrayList<ConfigurationBean>) getJdbcTemplate().query(sql,new BeanPropertyRowMapper(ConfigurationBean.class));
+		}catch(Exception ex){
+			demo.logSQLException(ex, "SourceDAoImpl.getCompareDetails");
+			 logger.error(" error in SourceDAoImpl.getCompareDetails", new Exception("SourceDAoImpl.getCompareDetails",ex));
+			 throw ex;
+		}
+		return configurationBeans;
+	}
+
+
+	@Override
+	public List<ConfigurationBean> getknockoffDetails(int fileId,
+			String category,String  subcat) throws Exception {
+		logger.info("***** SourceDAoImpl.getknockoffDetails Start ****");
+		ArrayList<ConfigurationBean> configurationBeans= null;
+		try{
+			
+			String query = "SELECT distinct mrevparam.Header as Knockoff_col,mrevdtl.VALUE as Knockoff_comprVal ,mrevparam.VALUE as Knockoff_OrgVal"
+					+ " FROM MAIN_REVERSAL_DETAIL mrevdtl "
+					+ " INNER JOIN main_reversal_parameters mrevparam"
+					+ " ON mrevdtl.REVERSAL_ID= mrevparam.REVERSAL_ID"
+					+ " WHERE mrevparam.file_id="+fileId+" AND mrevdtl.CATEGORY ='"+category+"'";
+			logger.info(query);
+			
+			 configurationBeans = (ArrayList<ConfigurationBean>) getJdbcTemplate().query(query,new BeanPropertyRowMapper(ConfigurationBean.class));
+			 logger.info("***** SourceDAoImpl.getknockoffDetails End ****");
+		}catch(Exception ex) {
+			demo.logSQLException(ex, "SourceDAoImpl.getknockoffDetails");
+			 logger.error(" error in SourceDAoImpl.getknockoffDetails", new Exception("SourceDAoImpl.getknockoffDetails",ex));
+			 throw ex;
+		}
+		return configurationBeans;
+	}
+
+
+	@Override
+	public List<ConfigurationBean> getknockoffcrt(int fileId, String category,String subcat) throws Exception {
+		ArrayList<ConfigurationBean> configurationBeans= null;
+		logger.info("***** SourceDAoImpl.getknockoffcrt Start ****");
+		subcat = subcat== null ? "" : subcat; 
+		try{
+			
+			String stCategory = !(subcat.equals("-"))?category+"_"+subcat: category;
+			String query = "SELECT distinct knckcrt.HEADER as knockoff_header,knckcrt.PADDING as knockoff_stPadding,knckcrt.START_CHARPOSITION as knockoffStart_Char_Pos,"
+					+ "		knckcrt.CHAR_SIZE as knockoffEnd_char_pos,knckcrt.HEADER_VALUE as knockoffSrch_Pattern ,knckcrt.CONDITION as knockoff_condition "
+					+ "					FROM Main_Knockoff_criteria knckcrt "
+					+ "		INNER JOIN MAIN_REVERSAL_DETAIL mrevdtl "
+					+ "		ON knckcrt.REVERSAL_ID = mrevdtl.REVERSAL_ID "
+					+ "		WHERE knckcrt.FILE_ID="+fileId+" and mrevdtl.CATEGORY='"+stCategory+"'";
+			logger.info(query);
+			
+			 configurationBeans = (ArrayList<ConfigurationBean>) getJdbcTemplate().query(query,new BeanPropertyRowMapper(ConfigurationBean.class));
+			 logger.info("***** SourceDAoImpl.getknockoffcrt End ****"); 
+		}catch(Exception ex) {
+			demo.logSQLException(ex, "SourceDAoImpl.getknockoffcrt");
+			 logger.error(" error in SourceDAoImpl.getknockoffcrt", new Exception("SourceDAoImpl.getknockoffcrt",ex));
+			 throw ex;
+		}
+		return configurationBeans;
+	}
+
+
+	@Override
+	public List<CompareSetupBean> getFileList(String category, String subcat) throws Exception {
+		logger.info("***** SourceDAoImpl.getFileList Start ****");
+		subcat = subcat== null ? "" : subcat; 
+		try{
+			
+			/*String stCategory = !(subcat.equals("-")) ? category + "_" + subcat
+					: category;*/
+
+			List<CompareSetupBean> beans = null;
+			String query = "Select fileid as inFileId, filename as stFileName "
+					+ " FROM MAIN_FILESOURCE  where FILE_CATEGORY='" + category+ "' ";
+
+			if (subcat != null && subcat != "-") {
+
+				query = query + " AND FILE_SUBCATEGORY='" + subcat + "'";
+			}
+
+			logger.info(query);
+			beans = (ArrayList<CompareSetupBean>) getJdbcTemplate().query(query, new BeanPropertyRowMapper(CompareSetupBean.class));
+			logger.info("***** SourceDAoImpl.getFileList End ****");
+			return beans;
+		}catch(Exception ex) {
+			demo.logSQLException(ex, "SourceDAoImpl.getFileList");
+			 logger.error(" error in SourceDAoImpl.getFileList", new Exception("SourceDAoImpl.getFileList",ex));
+			return null;
+		}
+		
+	}
+
+	
+
+	
+	@Override
+	public List<String> gettable_list() {
+		
+		String query= "Select distinct TABLENAME from main_filesource ";
+		
+		//getJdbcTemplate().queryForList(query, String.class);
+		
+		
+		
+		return getJdbcTemplate().queryForList(query, String.class);
+	}
+
+
+	@Override
+	public List<CompareSetupBean> getFileTypeList(String category,String subcat, String table) throws Exception {
+		// TODO Auto-generated method stub
+		logger.info("***** SourceDAoImpl.getFileTypeList Start ****");
+			try{
+				
+				/*String stCategory = !(subcat.equals("-")) ? category + "_" + subcat
+						: category;*/
+				String query = "";
+				
+				List<CompareSetupBean> beans = null;
+				/*if(!subcat.equals("-"))
+				{
+					query = "select distinct dcrs_remarks as remarks from "+table;
+							//+" WHERE DCRS_REMARKS LIKE '%"+category+"_"+subcat.substring(0, 3)+"%'";
+				}
+				else*/
+				if(!subcat.equals("-") && (!category.equals("NFS")) )
+				{
+					/*query = "select distinct dcrs_remarks as remarks from "+table
+							+" WHERE DCRS_REMARKS LIKE '%"+category+"_"+subcat.substring(0, 3)+"%'";*/
+					query = "select distinct dcrs_remarks as remarks from "+table+" WHERE DCRS_REMARKS NOT LIKE '%(%'";
+
+				}
+				else 
+				{
+					//query = "select distinct dcrs_remarks as remarks from "+table;
+					query ="select   distinct dcrs_remarks as remarks   from( "
+							+ "select case substr(dcrs_remarks,1,20) when   'MATCHED_UNSUCCESSFUL' then 'MATCHED_UNSUCCESSFUL'"
+							+ "else dcrs_remarks  end as dcrs_remarks    from  "+table+" "
+							+ ")";
+					/*query = "select distinct translate(REGEXP_REPLACE (DCRS_REMARKS, '\\d', ''),'()',' ') as remarks " +
+							"from "+table+" WHERE DCRS_REMARKS LIKE '%"+category+"_"+subcat.substring(0, 3)+"%' ";*/
+					
+				}
+				
+					//query = "select distinct dcrs_remarks as remarks from "+table+" WHERE DCRS_REMARKS NOT LIKE '%(%'";
+					
+					
+
+				
+
+				logger.info(query);
+				beans = (ArrayList<CompareSetupBean>) getJdbcTemplate().query(query, new BeanPropertyRowMapper(CompareSetupBean.class));
+				
+				logger.info("***** SourceDAoImpl.getFileTypeList End ****");
+				return beans;
+			}catch(Exception ex) {
+				
+				demo.logSQLException(ex, "SourceDAoImpl.getFileTypeList");
+				 logger.error(" error in SourceDAoImpl.getFileTypeList", new Exception("SourceDAoImpl.getFileTypeList",ex));
+				return null;
+			}
+			
+		}
+	
+@Override	
+public List<String> getSubcategories(String category) throws Exception
+{
+	logger.info("***** SourceDAoImpl.getSubcategories Start ****");
+	List<String> SubCategories = new ArrayList<>();
+	try
+	{
+		String GET_SUBCATE = "SELECT DISTINCT FILE_SUBCATEGORY FROM MAIN_FILESOURCE WHERE FILE_CATEGORY = ? and FILE_SUBCATEGORY not like '%SUR%' ";
+		SubCategories = getJdbcTemplate().query(GET_SUBCATE, new Object[] {category},new RowMapper()
+		{
+			@Override
+			public String mapRow(ResultSet rs, int rownum) throws SQLException 
+			{	
+					String subcategory = rs.getString("FILE_SUBCATEGORY");
+					return subcategory;
+				
+			}
+		}
+				);
+		logger.info("***** SourceDAoImpl.getSubcategories End ****");
+		return SubCategories;
+		
+	}
+	catch(Exception e)
+	{
+		demo.logSQLException(e, "SourceDAoImpl.getSubcategories");
+		 logger.error(" error in SourceDAoImpl.getSubcategories", new Exception("SourceDAoImpl.getSubcategories",e));
+		return null;
+	}
+		
+}
+	
+
+
+}
+
+

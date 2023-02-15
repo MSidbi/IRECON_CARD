@@ -1,0 +1,41 @@
+* {
+	padding: 0;
+	margin: 0;
+	outline: 0;
+}
+
+html {
+	height: 100%;
+	background: #e1e5e8;
+}
+
+body {
+	margin: 0 auto;
+	font-family: "Georgia", Tahoma, Sans-Serif;
+	font-size: 12px;
+	line-height: 18px;
+	min-height: 100%;
+	/*height: auto !important;*/
+	height: 100%;
+}
+
+#container {
+	min-height: 100%;
+	position: relative;
+	background: url(../images/bg.gif) repeat-y center 0;
+}
+
+#body {
+	padding-bottom: 32px;
+}
+
+#top {
+	padding: 20px 0 16px;
+}
+
+#footer {
+	position: absolute;
+	/*width : 874px;*/
+	bottom: 0;
+	width:100%;
+}

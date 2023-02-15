@@ -1,0 +1,113 @@
+package com.recon.service.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.recon.dao.ISettelmentDao;
+import com.recon.model.SettlementBean;
+import com.recon.model.SettlementTypeBean;
+import com.recon.service.ISettelmentService;
+
+@Component
+public class SettlementServImpl implements ISettelmentService {
+
+	@Autowired 
+	ISettelmentDao settlementdao;
+	
+	@Override
+	public ArrayList<String> gettype(String tableName) {
+		// TODO Auto-generated method stub
+		return settlementdao.gettype(tableName);
+	}
+
+	@Override
+	public ArrayList<SettlementTypeBean> getReconData(String tableName,
+			String type, String date, String searchValue) {
+		// TODO Auto-generated method stub
+		return settlementdao.getReconData(tableName, type, date, searchValue);
+	}
+
+	@Override
+	public List<SettlementTypeBean> getSettlmentType(String type,
+			String tablename) {
+		// TODO Auto-generated method stub
+		return settlementdao.getSettlmentType(type, tablename);
+	}
+
+	@Override
+	public ArrayList<String> getColumnList(String tableName) {
+		// TODO Auto-generated method stub
+		return settlementdao.getColumnList(tableName);
+	}
+
+	@Override
+	public int getReconDataCount(String table, String type, String date,
+			String searchValue) {
+		// TODO Auto-generated method stub
+		return settlementdao.getReconDataCount(table, type, date, searchValue);
+	}
+
+	@Override
+	public ArrayList<SettlementTypeBean> getChngReconData(String trim,
+			String trim2, String trim3, String trim4, int jtStartIndex,
+			int jtPageSize) {
+		// TODO Auto-generated method stub
+		return settlementdao.getChngReconData(trim, trim2, trim3, trim4, jtStartIndex, jtPageSize);
+	}
+
+	@Override
+	public void manualReconToSettlement(String table_name, String stFile_date)
+			throws Exception {
+		// TODO Auto-generated method stub
+		settlementdao.manualReconToSettlement(table_name, stFile_date);
+		
+	}
+
+	@Override
+	public int updateRecord(SettlementTypeBean settlementTypeBean) {
+		// TODO Auto-generated method stub
+		return settlementdao.updateRecord(settlementTypeBean);
+	}
+	
+	@Override
+	public List<List<String>> getReconData1(String stFileId,String dcrs_remarks,String date,String searchValue)
+	{
+		return settlementdao.getReconData1(stFileId, dcrs_remarks, date, searchValue);
+	}
+	
+	@Override
+	public String getFileName(String stfileId)
+	{
+		return settlementdao.getFileName(stfileId);
+	}
+	
+	//@Override
+	/*public void buildExcelDocument1(Map<String, Object> map, String stFilename,HttpServletRequest request,HttpServletResponse response) throws Exception
+	{
+		settlementdao.buildExcelDocument1(map, stFilename,request,response);
+	}
+*/
+	@Override
+	public void generate_Reports(SettlementBean settlementBeanObj) throws Exception 
+	{
+		settlementdao.generate_Reports(settlementBeanObj);
+	}
+	
+	public Boolean checkfileprocessed(SettlementBean settlementbeanObj)
+	{
+		return settlementdao.checkfileprocessed(settlementbeanObj);
+	}
+	
+	public void DeleteFiles(String path)
+	{
+		settlementdao.DeleteFiles(path);
+	}
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans-3.0.xsd">
+
+	<!-- Monthly Data Load Excel Bean -->
+	<!-- <bean id="monthlyDataLoadExcel" class="com.pf.util.MonthlyDataLoadExcel"></bean> -->
+
+	<!-- Consolidated Report Excel Bean -->
+	<!-- <bean id="consolidatedReportExcel" class="com.pf.util.ConsolidatedReportExcel"></bean> -->
+	
+	<!-- TTUM Excel Bean -->
+	<!--  <bean id="generateTTUMExcel" class="com.recon.util.GenerateTTUMExcel"></bean> -->
+	  <bean id="GenerateAmexTTUMExcel" class="com.recon.util.GenerateAmexTTUMExcel"></bean>
+	    <bean id="GenerateCashnetTTUMExcel" class="com.recon.util.GenerateCashnetTTUMExcel"></bean>
+	  <bean id="generateRupayTTUMExcel" class="com.recon.util.GenerateRupayTTUMExcel"></bean>
+	  <bean id="generateReportExcel" class="com.recon.util.GenerateReport"></bean>
+	  <bean id="generateExcelReport" class="com.recon.util.GenerateExcelReport"></bean>
+	  <bean id="Mastercard_c_excel" class="com.recon.util.Mastercard_c_excel"></bean>
+	  <bean id="Mastercard_Iss_Switch" class="com.recon.util.Mastercard_Iss_Switch"></bean>
+	  <bean id="Mastercard_Iss_Cbs" class="com.recon.util.Mastercard_Iss_Cbs"></bean>
+	  <bean id="GenerateMastcard_SurchExcel" class="com.recon.util.GenerateMastcard_SurchExcel"></bean>
+	  <bean id="Mastercard_Issuer_Excel" class="com.recon.util.Mastercard_Issuer_Excel"></bean>
+	  <bean id="Mastercard_Acq_Cbs" class="com.recon.util.Mastercard_Acq_Cbs"></bean>
+	  <bean id="Mastercard_Atm_Dcc" class="com.recon.util.Mastercard_Atm_Dcc"></bean>
+	  <bean id="Mastercard_Acq_switch" class="com.recon.util.Mastercard_Acq_switch"></bean>
+	  <bean id="GenerateCardtocard_ttum" class="com.recon.util.GenerateCardtocard_ttum"></bean>
+	  <bean id="RupayDisputeTTUMExcel" class="com.recon.util.RupayDisputeTTUMExcel"></bean>
+	  <bean id="ExcelTemplate" class="com.recon.util.chargeback.ExcelTemplate"></bean>
+	   <bean id="GenerateMastercardChargebk" class="com.recon.util.GenerateMastercardChargebk"></bean>
+	    <bean id="SettlementFinalReport" class="com.recon.util.chargeback.SettlementFinalReportExcel"></bean> 
+	    <bean id="SettlementTTUMREPORT" class="com.recon.util.SettlementTTUMReportExcel"  ></bean>
+	     <bean id="ChargeBackDownloadExcel" class="com.recon.util.chargeback.ChargeBackDownloadExcel"></bean>
+	 
+	  <bean id="ChargeBackReportExcel" class="com.recon.util.chargeback.ChargeBackReportExcel"></bean>
+	  
+	  <!-- ADDED BY INT8624 FOR NFS INTERCHANGE MONTHLY DATA -->
+	  <bean id="GenerateNFSMonthlyReport" class="com.recon.util.GenerateNFSMonthlyReport"></bean>
+	  
+	   <!-- ADDED BY INT8624 FOR NFS INTERCHANGE DAILY DATA -->
+	  <bean id="GenerateNFSDailyReport" class="com.recon.util.GenerateNFSDailyReport"></bean>
+	  
+	  <bean id="GenerateReconReport" class="com.recon.util.GenerateReconReport"></bean>	  
+	  
+	   <!-- ADDED BY INT8624 FOR NFS INTERCHANGE DAILY DATA -->
+	  <bean id="GenerateVisaSettlementReport" class="com.recon.util.GenerateVisaSettlementReport"></bean>
+	  
+	 <!-- ADDED BY INT8624 FOR NFS INTERCHANGE DAILY DATA -->
+	  <bean id="GenerateRefundTTUMReports" class="com.recon.util.GenerateRefundTTUMReports"></bean>
+	  
+	  
+	  <bean id="GenerateRupaySettlementReport" class="com.recon.util.GenerateRupaySettlementReport"></bean>
+	  
+	  <bean id="GenerateUCOTTUMExcel" class="com.recon.util.GenerateUCOTTUMExcel"></bean>
+	  
+	  <bean id="GenerateGLStatements" class="com.recon.util.GenerateGLStatements"></bean>
+	  
+	  
+	<!-- Loan Outstanding Report Excel Bean -->
+	<!-- <bean id="loanOutstandingReportExcel" class="com.pf.util.LoanOutstandingReportExcel"></bean> -->
+	
+	<!-- Loan Disbursement Report Excel Bean -->
+	<!-- <bean id="loanDisbursementReportExcel" class="com.pf.util.LoanDisbursementReportExcel"></bean> -->
+	
+	<!-- NPS Report Excel Bean -->
+	<!-- <bean id="nPSReportExcel" class="com.pf.util.NPSReportExcel"></bean> -->
+	
+</beans>

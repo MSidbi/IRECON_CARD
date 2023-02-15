@@ -1,0 +1,263 @@
+body {
+	background-color: #FFFFFF;
+	color: #000000;
+	font-family: 'Segoe UI Semilight', 'Open Sans', Verdana, Arial,
+		Helvetica, sans-serif;
+	font-size: 13px;
+	font-weight: 400;
+}
+
+h1 {
+	font-family: 'Segoe UI Semilight', 'Open Sans', Verdana, Arial,
+		Helvetica, sans-serif;
+	font-size: 25px;
+	font-weight: 400;
+	margin-top: 10px;
+}
+
+h2 {
+	font-family: 'Segoe UI Semilight', 'Open Sans', Verdana, Arial,
+		Helvetica, sans-serif;
+	font-size: 21px;
+	font-weight: 300;
+	line-height: 18px;
+	margin-top: 10px;
+}
+
+h3 {
+	font-family: 'Segoe UI Semilight', 'Open Sans', Verdana, Arial,
+		Helvetica, sans-serif;
+	font-size: 16px;
+	font-weight: 300;
+}
+
+h4 {
+	font-family: 'Segoe UI Semilight', 'Open Sans', Verdana, Arial,
+		Helvetica, sans-serif;
+	font-size: 14px;
+	font-weight: 300;
+}
+
+a {
+	color: #2E92CF;
+	text-decoration: none;
+}
+
+a:hover {
+	color: #2DADED;
+	text-decoration: none;
+}
+
+div.site-container {
+	margin: auto;
+	width: 760px;
+}
+
+div.ads-container {
+	margin: auto;
+	position: fixed;
+	right: 5px;
+	top: 5px;
+	width: 130px;
+}
+
+div.main-header {
+	background-color: #2D89EF;
+	color: #FFFFFF;
+	margin-bottom: 5px;
+	padding: 10px;
+}
+
+div.main-header h1 {
+	margin: 0;
+}
+
+div.main-header h1 .light {
+	color: #FFFFFF;
+	opacity: 0.6;
+}
+
+div.main-header h1 a {
+	color: #FFFFFF;
+}
+
+div.main-header h2 {
+	font-size: 16px;
+	margin-top: 0;
+	position: relative;
+	top: 8px;
+}
+
+div.main-header a {
+	color: #FFFFFF;
+}
+
+div.top-navigation {
+	background-color: #EFF4FF;
+	color: #CCCCCC;
+	margin-bottom: 5px;
+	padding: 4px;
+}
+
+div.top-navigation a {
+	padding: 0 2px;
+}
+
+div.content-container {
+	background-color: #F5F5F5;
+	margin-bottom: 5px;
+	padding: 0;
+}
+
+div.content-container div.padded-content-container {
+	padding: 6px;
+}
+
+div.main-footer {
+	background-color: #2D89EF;
+	color: #FFFFFF;
+	margin-bottom: 5px;
+	padding: 4px;
+	text-align: center;
+}
+
+div.main-footer a {
+	color: #AFE2FF;
+}
+
+ul {
+	list-style-type: none;
+	margin: 2px 0;
+	padding: 0 10px;
+}
+
+ul>li {
+	background: url("images/Home/bullet.png") no-repeat scroll 0 1px
+		rgba(0, 0, 0, 0);
+	margin: 2px 0;
+	padding: 0 0 0 22px;
+}
+
+ul>li ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 1px 0;
+}
+
+ul>li ul li {
+	background: url("images/Home/bullet.png") no-repeat scroll 0 1px
+		rgba(0, 0, 0, 0);
+	margin: 2px;
+	padding: 0 0 0 22px;
+}
+
+ul#DemoList .demo-new {
+	font-family: 'Segoe UI Semilight', 'Open Sans', Verdana, Arial,
+		Helvetica, sans-serif;
+	font-weight: 700;
+}
+
+ul#DemoList .demo-updated {
+	font-family: 'Segoe UI Semilight', 'Open Sans', Verdana, Arial,
+		Helvetica, sans-serif;
+	font-weight: 600;
+}
+
+ul#QuickLinks {
+	list-style-type: none;
+	margin: 12px 0 0;
+	padding: 0;
+	text-align: center;
+}
+
+ul#QuickLinks>li {
+	background: none repeat scroll 0 0 rgba(0, 0, 0, 0);
+	display: inline-block;
+	margin: 2px;
+	padding: 0;
+	position: relative;
+	text-align: left;
+	width: 31%;
+}
+
+ul#QuickLinks>li.seedemos {
+	background-color: #E51400;
+}
+
+ul#QuickLinks>li.seedemos img {
+	right: 10px;
+}
+
+ul#QuickLinks>li.second {
+	background-color: #E8AE00;
+}
+
+ul#QuickLinks>li.second img {
+	right: 4px;
+	top: 8px;
+}
+
+ul#QuickLinks>li.third {
+	background-color: #00A300;
+}
+
+ul#QuickLinks>li.third img {
+	right: 0;
+}
+
+ul#QuickLinks>li a {
+	color: #FFFFFF;
+}
+
+ul#QuickLinks>li a h2 {
+	margin: 15px 10px;
+}
+
+ul#QuickLinks>li img {
+	opacity: 0.5;
+	position: absolute;
+	top: 0;
+}
+
+ul#QuickLinks>li:hover img {
+	opacity: 1;
+}
+
+.centered {
+	text-align: center;
+	vertical-align: middle;
+}
+
+.api-option-header {
+	background-color: #6FAEF4;
+	color: #FFFFFF;
+	margin-top: 10px;
+	padding: 5px;
+}
+
+.api-option-header div {
+	display: inline;
+	padding-right: 20px;
+}
+
+.api-option-header .option-name {
+	font-weight: bold;
+}
+
+.expandable-header {
+	color: #000066;
+	cursor: pointer;
+}
+
+.expandable-content {
+	display: none;
+}
+
+.news-date {
+	color: #0F0F87;
+}
+
+.tabsContainer .code-extra a {
+	color: #0000FF;
+	font-weight: bold;
+}

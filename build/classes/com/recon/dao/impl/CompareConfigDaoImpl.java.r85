@@ -1,0 +1,1591 @@
+package com.recon.dao.impl;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Pattern;
+
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.jdbc.core.BeanPropertyRowMapper;
+import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+import org.springframework.web.multipart.MultipartFile;
+
+import com.recon.dao.ICompareConfigDao;
+import com.recon.model.CompareSetupBean;
+import com.recon.model.FileColumnDtls;
+import com.recon.model.FileSourceBean;
+import com.recon.model.ManualCompareBean;
+import com.recon.model.ManualFileColumnDtls;
+import com.recon.model.ReadVisaFile;
+import com.recon.util.CardTocard_cbs;
+import com.recon.util.Pos_Reading;
+import com.recon.util.ReadCBSFile;
+import com.recon.util.ReadCardToCardCBS;
+import com.recon.util.ReadCashNetFile;
+import com.recon.util.ReadNUploadCBSFiles;
+import com.recon.util.ReadNUploadOnusPosFile;
+import com.recon.util.ReadNfsRawData;
+import com.recon.util.ReadRupay;
+import com.recon.util.ReadSwitchFile;
+import com.recon.util.Read_ATM_File;
+import com.recon.util.demo;
+@Component
+public class CompareConfigDaoImpl extends JdbcDaoSupport implements ICompareConfigDao {
+	
+	int reconcount=0,manreconcount=0,manmatchcount=0;
+	private PlatformTransactionManager transactionManager;
+	private Integer uploadcount;
+	private Integer filecount;
+	
+
+	
+	
+	@SuppressWarnings("resource")
+	public void setTransactionManager() {
+	    
+		   try{
+		  
+			   logger.info("***** CompareConfigDaoImpl.setTransactionManager Start ****");
+		   ApplicationContext context= new ClassPathXmlApplicationContext();
+		   context = new ClassPathXmlApplicationContext("/resources/bean.xml");
+		 
+		   logger.info("in settransactionManager");
+		   transactionManager = (PlatformTransactionManager) context.getBean("transactionManager"); 
+		   logger.info(" settransactionManager completed");
+		   logger.info("***** CompareConfigDaoImpl.setTransactionManager End ****");
+		   ((ClassPathXmlApplicationContext) context).close();
+		   }catch (Exception ex) {
+			   
+			   logger.error(" error in CompareConfigDaoImpl.setTransactionManager", new Exception("CompareConfigDaoImpl.setTransactionManager",ex));
+		   }
+		   
+		   
+	   }
+	
+	@Override
+	public List<CompareSetupBean> getFileDetails() {
+
+		logger.info("***** CompareConfigDaoImpl.getFileDetails Start ****");
+		
+		List<CompareSetupBean> filelist = null;
+		
+		try {
+			
+			String query="SELECT filesrc.Fileid as inFileId , filesrc.FileName as stFileName ,filesrc.dataseparator ,filesrc.rddatafrm ,filesrc.charpatt,"
+					+ " filesrc.Activeflag as activeFlag  "
+					+ " FROM Main_FILESOURCE filesrc "
+					+ " WHERE activeFlag='A' ";
+									/*+ " WHERE filesrc.ActiveFlag='A' ";*/
+				
+			logger.info("query==" +query);
+
+			
+			filelist = getJdbcTemplate().query(query,new BeanPropertyRowMapper(CompareSetupBean.class));
+			
+			logger.info("***** CompareConfigDaoImpl.getFileDetails End ****");
+			
+		}catch (Exception ex) {
+			
+			logger.error(" error in CompareConfigDaoImpl.getFileDetails", new Exception("CompareConfigDaoImpl.getFileDetails",ex));
+			throw ex;
+		}
+		
+		
+		
+		return filelist;
+	
+	}
+
+	@Override
+	public boolean saveCompareDetails(CompareSetupBean setupBean) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.saveCompareDetails Start ****");
+		setTransactionManager();
+		TransactionDefinition definition = new DefaultTransactionDefinition();
+		TransactionStatus status = transactionManager.getTransaction(definition);
+		logger.info("status=="+status);
+		List<FileColumnDtls> columnDtls = new ArrayList<FileColumnDtls>();
+		
+		columnDtls = setupBean.getColumnDtls();
+		
+		try {
+			
+			String category =  setupBean.getStSubCategory().equals("")?setupBean.getCategory():setupBean.getCategory()+"_"+setupBean.getStSubCategory();
+			logger.info("category=="+category);
+			boolean result = true;
+			reconcount = getJdbcTemplate().queryForObject("SELECT CASE WHEN  (SELECT MAX(rec_Set_ID) FROM MAIN_RECON_SEQUENCE where  category ='"+category+"') is null then 0 else (SELECT MAX(rec_Set_ID) FROM MAIN_RECON_SEQUENCE where  category ='"+category+"') end as FLAG from dual", Integer.class);
+			reconcount=reconcount+1;
+			logger.info("reconcount=="+reconcount);
+			result = insertMain_ReconSetupDetails(setupBean);
+			
+			if(result){
+				
+				result =insertReconParam(setupBean,columnDtls);
+			}
+				
+			logger.info("***** CompareConfigDaoImpl.saveCompareDetails End ****");
+			
+			return result;
+			
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.saveCompareDetails");
+			logger.error(" error in CompareConfigDaoImpl.saveCompareDetails", new Exception("CompareConfigDaoImpl.saveCompareDetails",ex));
+			return false;
+		}
+		
+		
+		
+	}
+
+	private boolean insertReconParam(CompareSetupBean setupBean,
+			List<FileColumnDtls> columnDtls)  {
+		 logger.info("***** CompareConfigDaoImpl.insertReconParam Start ****");
+		int count=0;
+		
+		List<CompareSetupBean> setup_dtl_list =setupBean.getSetup_dtl_list();
+		setTransactionManager();
+		TransactionDefinition definition = new DefaultTransactionDefinition();
+		TransactionStatus status = transactionManager.getTransaction(definition);
+		logger.info("status=="+status);
+		try{
+		//ADDED BY INT 5779 FOR ADDING CATEGORY AND SUBCATEGORY	
+		String category =  setupBean.getStSubCategory().equals("")?setupBean.getCategory():setupBean.getCategory()+"_"+setupBean.getStSubCategory();
+		logger.info("category=="+category);
+		for(final CompareSetupBean compareSetupBean :setup_dtl_list) {
+			
+			getJdbcTemplate().update("Insert into MAIN_RECON_PARAM (CATEGORY,TABLE_HEADER,PADDING,START_CHARPOS,CONDITION,CHARSIZE,ENTRY_BY,ENTRY_DATE,TABLE_FILE_ID,PATTERN,REC_SET_ID)"
+					+ "values ('"+category+"','"+compareSetupBean.getTable_header()+"','"+compareSetupBean.getStPadding()+"','"+compareSetupBean.getStart_charpos()+"',"
+							+ "'"+compareSetupBean.getCondition()+"',"+compareSetupBean.getCharsize()+",'"+setupBean.getEntryBy()+"',sysdate,"+setupBean.getCompareFile1()+",'"+compareSetupBean.getSrch_Pattern()+"',"+reconcount+")");
+		
+			
+			if(compareSetupBean.getMatchCondn().equals("Y")){
+				
+				getJdbcTemplate().update("Insert into MAIN_MATCHING_CONDITION (CATEGORY,TABLE_HEADER,PADDING,START_CHARPOS,CONDITION,CHARSIZE,ENTRY_BY,ENTRY_DATE,TABLE_FILE_ID,PATTERN,REC_SET_ID)"
+						+ "values ('"+category+"','"+compareSetupBean.getTable_header()+"','"+compareSetupBean.getStPadding()+"','"+compareSetupBean.getStart_charpos()+"',"
+								+ "'"+compareSetupBean.getCondition()+"',"+compareSetupBean.getCharsize()+",'"+setupBean.getEntryBy()+"',sysdate,"+setupBean.getCompareFile1()+",'"+compareSetupBean.getSrch_Pattern()+"',"+reconcount+")");
+			
+			}
+			
+		}
+		
+		for(final FileColumnDtls fileColumnDtls:columnDtls ){
+			
+			count= count+1;
+			
+			if(setupBean.getCompareFile1()>0){
+				
+				getJdbcTemplate().update("Insert into MAIN_MATCHING_CRITERIA (CATEGORY,MATCH_HEADER,PADDING,START_CHARPOS,CHAR_SIZE,ENTRY_BY,ENTRY_DATE,FILE_ID,DATATYPE,DATA_PATTERN,MATCH_ID,REC_SET_ID,RELAX_PARAM)"
+						+ "values ('"+category+"','"+fileColumnDtls.getFileColumn1()+"','"+fileColumnDtls.getStPadding()+"','"+fileColumnDtls.getInStart_Char_Position()+"',"
+								+ ""+fileColumnDtls.getInEnd_char_position()+",'"+setupBean.getEntryBy()+"',sysdate,"+setupBean.getCompareFile1()+",'"+fileColumnDtls.getDataType()+"',"
+										+ "'"+fileColumnDtls.getDatpattern()+"',"+count+","+reconcount+","+setupBean.getStRelaxParam1()+")");
+			
+			
+			}if(setupBean.getCompareFile2()>0){
+				
+			
+				
+				getJdbcTemplate().update("Insert into MAIN_MATCHING_CRITERIA (CATEGORY,MATCH_HEADER,PADDING,START_CHARPOS,CHAR_SIZE,ENTRY_BY,ENTRY_DATE,FILE_ID,DATATYPE,DATA_PATTERN,MATCH_ID,REC_SET_ID,RELAX_PARAM)"
+						+ "values ('"+category+"','"+fileColumnDtls.getFileColumn2()+"','"+fileColumnDtls.getStPadding2()+"','"+fileColumnDtls.getInStart_Char_Position2()+"',"
+								+ ""+fileColumnDtls.getInEnd_char_position2()+",'"+setupBean.getEntryBy()+"',sysdate,"+setupBean.getCompareFile2()+",'"+fileColumnDtls.getDataType2()+"',"
+										+ "'"+fileColumnDtls.getDatpattern2()+"',"+count+","+reconcount+","+setupBean.getStRelaxParam2()+")");
+				
+				
+			
+			} if(setupBean.getCompareFile3()>0){
+				
+				
+				getJdbcTemplate().update("Insert into MAIN_MATCHING_CRITERIA (CATEGORY,MATCH_HEADER,PADDING,START_CHARPOS,CHAR_SIZE,ENTRY_BY,ENTRY_DATE,FILE_ID,DATATYPE,DATA_PATTERN,MATCH_ID,REC_SET_ID)"
+						+ "values ('"+category+"','"+fileColumnDtls.getFileColumn3()+"','"+fileColumnDtls.getStPadding3()+"','"+fileColumnDtls.getInStart_Char_Position3()+"',"
+								+ ""+fileColumnDtls.getInEnd_char_position3()+",'"+setupBean.getEntryBy()+"',sysdate,"+setupBean.getCompareFile3()+",'"+fileColumnDtls.getDataType3()+"',"
+										+ "'"+fileColumnDtls.getDatpattern3()+"',"+count+","+reconcount+",)");
+				
+				
+			}
+			
+			
+				
+			}
+		
+		transactionManager.commit(status);		
+		
+		 logger.info("***** CompareConfigDaoImpl.insertReconParam Start ****");
+		 
+		return true;
+		
+		}catch (Exception e) {
+			
+			transactionManager.rollback(status);
+			logger.error(" error in CompareConfigDaoImpl.insertReconParam", new Exception("CompareConfigDaoImpl.insertReconParam",e));
+				return false;
+			}
+		
+		}
+		
+	@Override
+	public boolean chkMain_ReconSetupDetails (CompareSetupBean setupBean) {
+		try{
+			logger.info("***** CompareConfigDaoImpl.chkMain_ReconSetupDetails Start ****");
+			String category = setupBean.getStSubCategory().equals("")?setupBean.getCategory():setupBean.getCategory()+"_"+setupBean.getStSubCategory();
+			logger.info("category=="+category);
+			int rowcount=0;
+			String query = "SELECT count(*) from MAIN_RECON_SEQUENCE"
+					+ " WHERE (file1 ='"+setupBean.getCompreFileName1().toUpperCase()+"' or file1 ='"+setupBean.getCompreFileName2().toUpperCase()+"' )"
+					+ "  AND (file2 = '"+setupBean.getCompreFileName1().toUpperCase()+"' or file2='"+setupBean.getCompreFileName2().toUpperCase()+"') "
+					+ " AND category='"+category+"' "; 
+			
+			logger.info(query);
+			rowcount = getJdbcTemplate().queryForObject(query,Integer.class );
+			logger.info(rowcount);
+			
+			logger.info("***** CompareConfigDaoImpl.chkMain_ReconSetupDetails End ****");
+			
+			if(rowcount>0){
+			
+				return false;
+				
+			}else{
+				
+				return true;
+			}
+		}catch (Exception ex) {
+			
+			logger.error(" error in CompareConfigDaoImpl.chkMain_ReconSetupDetails", new Exception("CompareConfigDaoImpl.chkMain_ReconSetupDetails",ex));
+			return false;
+		}
+		
+		
+		
+		
+	}
+	
+	public boolean insertMain_ReconSetupDetails(CompareSetupBean setupBean) {
+		
+		logger.info("***** CompareConfigDaoImpl.insertMain_ReconSetupDetails Start ****");
+		String category = setupBean.getStSubCategory().equals("")?setupBean.getCategory():setupBean.getCategory()+"_"+setupBean.getStSubCategory();
+		logger.info("category=="+category);
+		String query="Insert into MAIN_RECON_SEQUENCE(rec_Set_ID,CATEGORY,FILE1,FILE2,FILE1_MATCHED,FILE2_MATCHED,entry_dt,entry_by) values("+reconcount+",'"+category+"','"+setupBean.getCompreFileName1().toUpperCase()+"','"+setupBean.getCompreFileName2().toUpperCase()+"','"+setupBean.getFile1match()+"','"+setupBean.getFile2match()+"',sysdate,'"+setupBean.getEntryBy()+"') ";
+		logger.info("query=="+query);
+		int count = getJdbcTemplate().update(query);
+		logger.info("count=="+count);
+		
+		logger.info("***** CompareConfigDaoImpl.insertMain_ReconSetupDetails End ****");
+		
+		if(count>0) {
+			
+			return true;
+		}else {
+			
+			return false;
+		}
+		
+	
+	}
+
+	@Override
+	public ArrayList<CompareSetupBean> getCompareFiles(String type,String subcat) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.getCompareFiles Start ****");
+		/*ArrayList<CompareSetupBean> compareSetupBeans = null;
+		
+		subcat = subcat==null?"":subcat;
+		
+		try{
+			//subcat
+			
+			String stCategory = subcat.equals("")?type+"_"+subcat : type;
+			String query=" SELECT rec_set_id,recon_category as category,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = (select FILEID from main_filesource where upper(filename) = mrecdet.FILE1 and FILE_CATEGORY='"+type+"' and FILE_SUBCATEGORY='-')) compreFileName1 ,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = (select FILEID from main_filesource where upper(filename) = mrecdet.FILE2 and FILE_CATEGORY='"+type+"' and FILE_SUBCATEGORY='-') )compreFileName2 " 
+					+ "  FROM MAIN_RECON_SEQUENCE mrecdet "
+					+ " WHERE recon_category='"+type+"' ";
+			
+			query="SELECT rec_set_id,Rec_category as category,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = mrecdet.firstfile) compreFile1 ,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = mrecdet.secondfile) compreFile2 ,  "
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = mrecdet.thirdfile) compreFile3  "
+					+ " FROM Main_ReconSetupDetails mrecdet"
+					+ " WHERE Rec_category='"+type+"' and layer="+layer+"";
+			
+			logger.info(query);
+			compareSetupBeans = (ArrayList<CompareSetupBean>) getJdbcTemplate().query(query,new BeanPropertyRowMapper(CompareSetupBean.class));
+			
+		}catch(Exception ex){
+			
+			ex.printStackTrace();
+		}
+		
+		return compareSetupBeans;*/
+		ArrayList<CompareSetupBean> compareSetupBeans = null;
+		String query=null;
+		subcat = subcat==null?"":subcat;
+		String file_cat=null;
+		file_cat=type;
+		if(type.equals("MASTERCARD") || type.equals("RUPAY") || type.equals("VISA") || type.equals("POS"))
+		{
+			file_cat=type;
+			type=type+"_"+subcat;
+			
+		}
+		
+		try{
+			//subcat
+			
+			String stCategory = subcat.equals("")?type+"_"+subcat : type;
+			if(subcat.equalsIgnoreCase(""))
+			{
+			 query=" SELECT rec_set_id,RECON_CATEGORY as category,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = (select FILEID from main_filesource where upper(filename) = mrecdet.FILE1 and FILE_CATEGORY='"+type+"' and FILE_SUBCATEGORY='-')) compreFileName1 ,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = (select FILEID from main_filesource where upper(filename) = mrecdet.FILE2 and FILE_CATEGORY='"+type+"' and FILE_SUBCATEGORY='-') )compreFileName2 " 
+					+ "  FROM MAIN_RECON_SEQUENCE mrecdet "
+					+ " WHERE RECON_CATEGORY='"+type+"' ";
+			
+			}else{
+			 query=" SELECT rec_set_id,RECON_CATEGORY as category,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = (select FILEID from main_filesource where upper(filename) = mrecdet.FILE1 and FILE_CATEGORY='"+file_cat+"' and FILE_SUBCATEGORY='"+subcat+"')) compreFileName1 ,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = (select FILEID from main_filesource where upper(filename) = mrecdet.FILE2 and FILE_CATEGORY='"+file_cat+"' and FILE_SUBCATEGORY='"+subcat+"') )compreFileName2 " 
+					+ "  FROM MAIN_RECON_SEQUENCE mrecdet "
+					+ " WHERE RECON_CATEGORY='"+type+"' ";
+			}
+			/*query="SELECT rec_set_id,Rec_category as category,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = mrecdet.firstfile) compreFile1 ,"
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = mrecdet.secondfile) compreFile2 ,  "
+					+ "(SELECT filename FROM main_filesource mfilsrc WHERE mfilsrc.fileid = mrecdet.thirdfile) compreFile3  "
+					+ " FROM Main_ReconSetupDetails mrecdet"
+					+ " WHERE Rec_category='"+type+"' and layer="+layer+"";
+			*/
+			logger.info("query=="+query);
+			compareSetupBeans = (ArrayList<CompareSetupBean>) getJdbcTemplate().query(query,new BeanPropertyRowMapper(CompareSetupBean.class));
+			
+			logger.info("***** CompareConfigDaoImpl.getCompareFiles End ****");
+			
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.getCompareFiles");
+			logger.error(" error in CompareConfigDaoImpl.getCompareFiles", new Exception("CompareConfigDaoImpl.getCompareFiles",ex));
+			throw ex;
+		}
+		
+		return compareSetupBeans;
+	}
+
+	@Override
+	public ArrayList<CompareSetupBean> getmatchcrtlist(int rec_set_id,String Cate) throws Exception {
+		ArrayList<CompareSetupBean> compareSetupBeans = null ;
+		logger.info("***** CompareConfigDaoImpl.getmatchcrtlist Start ****");
+		try{
+			String query = " SELECT category,match_header as table_header,padding,start_charpos,char_size,"
+					+ " (SELECT filename FROM main_filesource WHERE fileid = mmatchcrt.file_id)filename,datatype,match_id,entry_by,to_char(entry_date,'dd/MON/yyyy')entry_date"
+					+ "  FROM main_matching_criteria mmatchcrt"
+					+ "  WHERE mmatchcrt.REC_SET_ID="+rec_set_id+" and mmatchcrt.CATEGORY='"+Cate+"'"
+					+ "  ORDER BY match_id  ";
+			
+			logger.info(query);
+			compareSetupBeans = (ArrayList<CompareSetupBean>) getJdbcTemplate().query(query,new BeanPropertyRowMapper(CompareSetupBean.class));
+			
+			logger.info("***** CompareConfigDaoImpl.getmatchcrtlist End ****");
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.getmatchcrtlist");	
+			logger.error(" error in CompareConfigDaoImpl.getmatchcrtlist", new Exception("CompareConfigDaoImpl.getmatchcrtlist",ex));
+			throw ex;
+			}
+			
+		
+		return compareSetupBeans;
+	}
+
+	@Override
+	public ArrayList<CompareSetupBean> getmatchcondnlist(int rec_set_id,String Cate) throws Exception {
+		ArrayList<CompareSetupBean> compareSetupBeans = null ;
+		logger.info("***** CompareConfigDaoImpl.getmatchcondnlist Start ****");
+		try{
+			String query = " SELECT category,table_header,padding,start_charpos,condition,charsize,"
+					+ " (SELECT filename FROM main_filesource WHERE fileid =mmatchcon.TABLE_FILE_ID)filename,pattern,entry_by,to_char(entry_date,'dd/MON/yyyy')entry_date"
+					+ "   FROM main_matching_condition mmatchcon "
+					+ "  WHERE mmatchcon.REC_SET_ID="+rec_set_id+" and mmatchcon.CATEGORY='"+Cate+"'";
+			
+			logger.info(query);
+			compareSetupBeans = (ArrayList<CompareSetupBean>) getJdbcTemplate().query(query,new BeanPropertyRowMapper(CompareSetupBean.class));
+		
+			logger.info("***** CompareConfigDaoImpl.getmatchcondnlist End ****");
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.getmatchcondnlist");		
+			logger.error(" error in CompareConfigDaoImpl.getmatchcondnlist", new Exception("CompareConfigDaoImpl.getmatchcondnlist",ex));
+			throw ex;
+			}
+			
+		
+		return compareSetupBeans;
+	}
+
+	@Override
+	public ArrayList<CompareSetupBean> getrecparamlist(int rec_set_id,String Cate) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.getrecparamlist Start ****");
+		ArrayList<CompareSetupBean> compareSetupBeans = null ;
+		try{
+		String query = "SELECT category,table_header,padding,start_charpos,condition,charsize,"
+				+ " (SELECT filename FROM main_filesource WHERE fileid =mrecpar.TABLE_FILE_ID)filename,pattern,entry_by,to_char(entry_date,'dd/MON/yyyy')entry_date "
+				+ " FROM Main_recon_param mrecpar WHERE mrecpar.REC_SET_ID="+rec_set_id+" and  mrecpar.CATEGORY='"+Cate+"'";
+		
+		logger.info(query);
+		compareSetupBeans = (ArrayList<CompareSetupBean>) getJdbcTemplate().query(query,new BeanPropertyRowMapper(CompareSetupBean.class));
+		
+		logger.info("***** CompareConfigDaoImpl.getrecparamlist End ****");
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.getrecparamlist");		
+			logger.error(" error in CompareConfigDaoImpl.getrecparamlist", new Exception("CompareConfigDaoImpl.getrecparamlist",ex));
+			throw ex;
+		}
+		
+		
+		return compareSetupBeans;
+	}
+
+	@Override
+	public ArrayList<CompareSetupBean> getFileList() {
+		logger.info("***** CompareConfigDaoImpl.getFileList Start ****");
+		List<CompareSetupBean> filelist = null;
+		
+		try {
+			
+			String query="SELECT distinct filesrc.FileName as stFileName "
+					+ " FROM Main_FILESOURCE filesrc "
+					+ " WHERE filesrc.ActiveFlag='A' ";
+				
+			logger.info("query" +query);
+			
+		/*	rs = oracleConn.executeQuery(query);*/
+			
+			/*while(rs.next()){
+				
+				FTPBean ftpBean = new FTPBean();
+				ftpBean.setFileId(rs.getInt("Fileid"));
+				ftpBean.setFileName(rs.getString("FileName"));
+				
+				ftpFileList.add(ftpBean);
+				
+				
+			}*/
+			
+			filelist = getJdbcTemplate().query(query,new BeanPropertyRowMapper(CompareSetupBean.class));
+			logger.info("***** CompareConfigDaoImpl.getFileList End ****");
+			
+		}catch (Exception ex) {
+			
+			logger.error(" error in CompareConfigDaoImpl.getFileList", new Exception("CompareConfigDaoImpl.getFileList",ex));
+			throw ex;
+		}
+		
+		
+		
+		return (ArrayList<CompareSetupBean>) filelist;
+	}
+
+	@Override
+	public boolean chkFileupload(CompareSetupBean setupBean) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.chkFileupload Start ****");
+		boolean result = false;
+		
+		try {
+			
+			int fileid=0;
+		String query= "Select COUNT(Fileid) from Main_File_Upload_Dtls where Fileid="+setupBean.getInFileId()+" AND to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"' ";
+		logger.info(query);
+		fileid = getJdbcTemplate().queryForObject(query,Integer.class);
+		
+		logger.info("***** CompareConfigDaoImpl.chkFileupload End ****");
+		if(fileid == 0){
+			
+			result = true;
+		}else {
+			
+			result= false;
+		}
+		
+		
+		}catch(Exception ex) {
+			demo.logSQLException(ex, "CompareConfigDaoImpl.chkFileupload");
+			logger.error(" error in CompareConfigDaoImpl.chkFileupload", new Exception("CompareConfigDaoImpl.chkFileupload",ex));
+			//throw ex;
+			
+			return false;
+			
+		}
+		
+		
+		return result;
+	}
+
+	@Override
+	public boolean uploadFile(CompareSetupBean setupBean,MultipartFile file) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.uploadFile Start ****");
+		boolean result = false;
+		String tablename="";
+		FileSourceBean sourceBean;
+		String query = "SELECT distinct tableName,columnheader as tblHeader FROM main_Filesource filesrc inner join main_fileheaders filehd on filehd.fileid= filesrc.fileid "
+				+ " WHERE (filesrc.FILENAME='"+setupBean.getFilename()+"' ) ";
+		
+		if( setupBean.getFilename().equals("SWITCH") || setupBean.getFilename().equals("VISA")) { 
+			
+			if(setupBean.getFilename().equals("VISA")) {
+				
+				query = query + " and filesrc.tableName='VISA_VISA_RAWDATA'";
+			}
+			
+		}else {
+			
+			if(setupBean.getStSubCategory().equalsIgnoreCase("CARDTOCARD"))
+			{
+			query = query + " and filesrc.FILE_CATEGORY ='"+setupBean.getStSubCategory()+"' ";
+			}
+			else{
+				query = query + " and filesrc.FILE_SUBCATEGORY ='"+setupBean.getStSubCategory()+"' ";
+			}
+			
+			if(setupBean.getStSubCategory().equals("-") && setupBean.getFilename().equals("CBS")) {
+				
+				query = query + " and  filesrc.FILE_CATEGORY ='ONUS'";
+			}
+			else if(setupBean.getStSubCategory().equals("ISSUER") && setupBean.getFilename().equals("CBS")) {
+				
+				query = query + " and  filesrc.FILE_CATEGORY ='VISA'";
+			}else if(setupBean.getStSubCategory().equals("ACQUIRER") && setupBean.getFilename().equals("CBS")) {
+				
+				query = query + " and  filesrc.FILE_CATEGORY ='NFS'";
+			}
+        else if(setupBean.getStSubCategory().equals("-") && setupBean.getFilename().equals("CBS")) {
+				
+				query = query + " and  filesrc.FILE_CATEGORY ='NFS'";
+			}
+			
+		} 
+		
+		
+		logger.info("query=="+query);
+		sourceBean = getJdbcTemplate().queryForObject(query,new BeanPropertyRowMapper( FileSourceBean.class));
+		
+		
+		
+		try{
+		if(setupBean.getFilename().equalsIgnoreCase("SWITCH")) {
+			
+			ReadSwitchFile switchFile = new ReadSwitchFile();
+			 
+			result= switchFile.uploadSwitchData(setupBean, getConnection(),file,sourceBean);
+			
+			
+		}else if (setupBean.getFilename().equalsIgnoreCase("CBS")) {
+			
+			if(setupBean.getStSubCategory().equalsIgnoreCase("CARDTOCARD"))
+			{
+				CardTocard_cbs  readcardtocardcbs = new CardTocard_cbs();
+				result=readcardtocardcbs.uploadDatac2c(setupBean, getConnection(), file, sourceBean);
+			}
+			else{
+				ReadNUploadCBSFiles cbsFile = new ReadNUploadCBSFiles();
+			result=cbsFile.uploadCBSData(setupBean, getConnection(), file, sourceBean);
+			}
+		}else if(setupBean.getFilename().equalsIgnoreCase("RUPAY")){
+			
+			ReadRupay  readRupay = new ReadRupay();
+			result=readRupay.readData(setupBean, getConnection(), file, sourceBean);
+			
+		}else if(setupBean.getFilename().equalsIgnoreCase("NFS")){
+			
+			ReadNfsRawData nfsRawData = new ReadNfsRawData(); 
+			result=nfsRawData.readData(setupBean, getConnection(), file, sourceBean);
+			
+		}else if(setupBean.getFilename().equalsIgnoreCase("CASHNET")){
+			
+			ReadCashNetFile  readcashnet = new ReadCashNetFile();
+			result=readcashnet.readData(setupBean, getConnection(), file, sourceBean);
+			
+		}else if(setupBean.getFilename().equalsIgnoreCase("VISA")){
+			
+			ReadVisaFile  readRupay = new ReadVisaFile();
+			result=readRupay.readData(setupBean, getConnection(), file, sourceBean);
+			
+		}
+else if(setupBean.getFilename().equalsIgnoreCase("ATM")){
+			
+			Read_ATM_File  readmas_atm = new Read_ATM_File();
+			result=readmas_atm.read_method_atm(setupBean, getConnection(), file);
+			
+		}
+		
+		if(setupBean.getCategory().equalsIgnoreCase("POS"))
+		{
+			if(setupBean.getFilename().equalsIgnoreCase("POS"))
+			{
+				ReadNUploadOnusPosFile  readonus_pos = new ReadNUploadOnusPosFile();
+				result=readonus_pos.read_method_onp(setupBean, getConnection(), file);
+			}
+		}
+		if(setupBean.getCategory().equalsIgnoreCase("MASTERCARD"))
+		{
+			if(setupBean.getFilename().equalsIgnoreCase("POS")){
+				
+				Pos_Reading  readmas_pos = new Pos_Reading();
+				result=readmas_pos.read_method(setupBean, getConnection(), file);
+				
+			}
+		}
+
+else if (setupBean.getFilename().equalsIgnoreCase("BANKREPO")) {
+			
+	//String strDate="06/05/2018";
+	
+	 SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy");
+ 	try {
+ 	    java.util.Date varDate=dateFormat.parse(setupBean.getFileDate());
+ 	    dateFormat=new SimpleDateFormat("mm/dd/yyyy");
+ 	    System.out.println("Date :"+dateFormat.format(varDate));
+ 	   setupBean.setFileDate(dateFormat.format(varDate));
+ 	}catch (Exception e) {
+ 	    // TODO: handle exception
+ 	    e.printStackTrace();
+ 	}
+	
+			ReadCardToCardCBS bankway = new ReadCardToCardCBS();
+			result=bankway.uploadDatacardtocardbank(setupBean, getConnection(), file, sourceBean);
+			
+		}
+/*else if(setupBean.getFilename().equalsIgnoreCase("CBS_C2C")){
+	SimpleDateFormat dateFormat = new SimpleDateFormat("dd/mm/yyyy");
+	try {
+	    java.util.Date varDate=dateFormat.parse(setupBean.getFileDate());
+	    dateFormat=new SimpleDateFormat("mm/dd/yyyy");
+	    System.out.println("Date :"+dateFormat.format(varDate));
+	    setupBean.setFileDate(dateFormat.format(varDate));
+	}catch (Exception e) {
+	    // TODO: handle exception
+	    e.printStackTrace();
+	}
+	CardTocard_cbs  readcardtocardcbs = new CardTocard_cbs();
+	result=readcardtocardcbs.uploadDatac2c(setupBean, getConnection(), file, sourceBean);
+	
+}*/
+		/*else if (setupBean.getFilename().equalsIgnoreCase("CBS")) {
+			
+			ReadCardToCardCBS cbsFile = new ReadCardToCardCBS();
+			result=cbsFile.uploadDatacardtocardcbs(setupBean, getConnection(), file, sourceBean);
+			
+		}*/
+		
+		
+		if(result) {
+			if(setupBean.getFilename().equalsIgnoreCase("POS"))
+			{
+				return true;
+			}
+			else if(setupBean.getFilename().equalsIgnoreCase("ATM"))
+			{
+				return true;
+			}
+			else if(setupBean.getCategory().equalsIgnoreCase("POS"))
+			{
+				return true;
+			}
+			else{
+			result= updatefile(setupBean);
+			}
+			
+		}
+		
+		logger.info("***** CompareConfigDaoImpl.uploadFile End ****");
+		
+		return result;
+		
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.uploadFile");
+			logger.error(" error in CompareConfigDaoImpl.uploadFile", new Exception("CompareConfigDaoImpl.uploadFile",ex));
+			
+			return false;
+			
+		}
+		
+	}
+	
+	// inserting into Main_File_Upload_Dtls
+	public boolean updatefile(CompareSetupBean setupBean) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.updatefile Start ****");
+		int count = 0;
+		String subcatquery=null;
+		
+			
+			subcatquery="Select fileid InFileId, FILE_CATEGORY Category, FILE_SUBCATEGORY StSubCategory from main_filesource where filename='"+setupBean.getFilename()+"' ";
+		
+		if( setupBean.getFilename().equals("SWITCH") || setupBean.getFilename().equals("VISA")) {
+			
+			subcatquery=subcatquery;
+			
+		} else {
+			
+			
+			
+			if (setupBean.getFilename().equals("CBS")&& setupBean.getStSubCategory().equals("-")) {
+
+				subcatquery = subcatquery + " and tablename = 'CBS_RAWDATA' ";
+
+			} else if (setupBean.getFilename().equals("CBS")&& setupBean.getStSubCategory().equals("ISSUER")) {
+
+				subcatquery = subcatquery
+						+ " and tablename = 'CBS_RUPAY_RAWDATA' ";
+
+			} else if (setupBean.getFilename().equals("CBS")&& setupBean.getStSubCategory().equals("ACQUIRER")) {
+
+				subcatquery = subcatquery
+						+ " and tablename = 'CBS_AMEX_RAWDATA' ";
+
+			} else {
+				
+				if (setupBean.getStSubCategory().equalsIgnoreCase("CARDTOCARD")) {
+					subcatquery = subcatquery + " AND FILE_CATEGORY = '"
+							+ setupBean.getStSubCategory() + "' ";
+				} else {
+					subcatquery = subcatquery + " AND FILE_SUBCATEGORY = '"
+							+ setupBean.getStSubCategory() + "' ";
+				}
+			}
+
+		}
+		
+		
+		logger.info("subcatquery=="+subcatquery);
+		ArrayList<CompareSetupBean> fileids = new ArrayList<>();
+		 fileids =  (ArrayList<CompareSetupBean>) getJdbcTemplate().query(subcatquery, new BeanPropertyRowMapper(CompareSetupBean.class));
+           
+		for(CompareSetupBean bean :fileids ) {
+		String query="";		
+		if(setupBean.getFileType().equalsIgnoreCase("MANUAL")){
+			
+			if(chkUploadFlag("UPLOAD_FLAG", setupBean).equalsIgnoreCase("N")) {
+				
+			
+			query =" insert into Main_File_Upload_Dtls (FILEID,FILEDATE,UPDLODBY,UPLOADDATE,CATEGORY,FILE_SUBCATEGORY,Upload_FLAG,Filter_FLAG,Knockoff_FLAG,Comapre_FLAG,ManualCompare_Flag,MANUPLOAD_FLAG) "
+					+ "values ("+bean.getInFileId() +",to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy'),'"+setupBean.getCreatedBy()+"',sysdate,'"+bean.getCategory()+"','"+bean.getStSubCategory()+"'"
+							+ ",'N','N','N','N','N','Y')";
+			
+			
+			
+			}else {
+				
+				 query="Update MAIN_FILE_UPLOAD_DTLS set MANUPLOAD_FLAG ='Y'  WHERE to_char(filedate,'dd/mm/yyyy') = to_char(to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy'),'dd/mm/yyyy') "
+						+ " AND CATEGORY = '"+bean.getCategory()+"' AND FileId = "+bean.getInFileId()+" "; 
+			}
+		} else {
+			
+			if(chkUploadFlag("MANUPLOAD_FLAG", setupBean).equalsIgnoreCase("N")) {
+				
+				if(setupBean.getCategory().equalsIgnoreCase("CARDTOCARD"))
+				{
+					if(setupBean.getFilename().equalsIgnoreCase("BANKREPO"))
+					{
+						query =" insert into Main_File_Upload_Dtls (FILEID,FILEDATE,UPDLODBY,UPLOADDATE,CATEGORY,FILE_SUBCATEGORY,Upload_FLAG,Filter_FLAG,Knockoff_FLAG,Comapre_FLAG,ManualCompare_Flag,MANUPLOAD_FLAG) "
+								+ "values ("+bean.getInFileId()+",to_date('"+setupBean.getFileDate()+"','mm/dd/yyyy'),'"+setupBean.getCreatedBy()+"',sysdate,'"+bean.getCategory()+"','"+bean.getStSubCategory()+"'"
+										+ ",'Y','N','N','N','N','Y')";
+					}
+					else{
+						query =" insert into Main_File_Upload_Dtls (FILEID,FILEDATE,UPDLODBY,UPLOADDATE,CATEGORY,FILE_SUBCATEGORY,Upload_FLAG,Filter_FLAG,Knockoff_FLAG,Comapre_FLAG,ManualCompare_Flag,MANUPLOAD_FLAG) "
+								+ "values ("+bean.getInFileId()+",to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy'),'"+setupBean.getCreatedBy()+"',sysdate,'"+bean.getCategory()+"','"+bean.getStSubCategory()+"'"
+										+ ",'Y','N','N','N','N','Y')";
+					}
+				}
+				else{
+				query =" insert into Main_File_Upload_Dtls (FILEID,FILEDATE,UPDLODBY,UPLOADDATE,CATEGORY,FILE_SUBCATEGORY,Upload_FLAG,Filter_FLAG,Knockoff_FLAG,Comapre_FLAG,ManualCompare_Flag,MANUPLOAD_FLAG) "
+						+ "values ("+bean.getInFileId()+",to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy'),'"+setupBean.getCreatedBy()+"',sysdate,'"+bean.getCategory()+"','"+bean.getStSubCategory()+"'"
+								+ ",'Y','N','N','N','N','N')";
+				}
+				logger.info("query=="+query);
+				
+				String  getupld_count = "Select case when FILE_COUNT is null then 0 else file_count end as file_count from main_file_upload_dtls where CATEGORY ='"+bean.getCategory()+"'  and FILE_SUBCATEGORY = '"+bean.getStSubCategory()+"' and FILEID ="+bean.getInFileId()+" ";
+						
+				if(setupBean.getFilename().equalsIgnoreCase("BANKREPO")) {
+					
+					getupld_count = 	getupld_count + " and  filedate = to_date('"+setupBean.getFileDate()+"','mm/dd/yyyy')  ";
+				
+				} else {
+					
+					getupld_count = 	getupld_count + " and  filedate = to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy')  ";
+				}
+				
+				getupld_count = " SELECT CASE WHEN exists ("+ getupld_count+") then ("+getupld_count+") else 0 end as FLAG from dual";
+				
+				logger.info("getupld_count=="+getupld_count);
+				
+				uploadcount = getJdbcTemplate().queryForObject(getupld_count, Integer.class);
+				
+				logger.info("uploadcount=="+uploadcount);
+				
+				uploadcount = uploadcount+1;
+				
+						if(setupBean.getFilename().equals("NFS")||setupBean.getFilename().equals("RUPAY"))
+						{
+							if (uploadcount == 1) {
+	
+								query = " insert into Main_File_Upload_Dtls (FILEID,FILEDATE,UPDLODBY,UPLOADDATE,CATEGORY,FILE_SUBCATEGORY,Upload_FLAG,Filter_FLAG,Knockoff_FLAG,Comapre_FLAG,ManualCompare_Flag,MANUPLOAD_FLAG,FILE_COUNT) "
+										+ "values ("
+										+ bean.getInFileId()
+										+ ",to_date('"
+										+ setupBean.getFileDate()
+										+ "','dd/mm/yyyy'),'"
+										+ setupBean.getCreatedBy()
+										+ "',sysdate,'"
+										+ bean.getCategory()
+										+ "','"
+										+ bean.getStSubCategory()
+										+ "'"
+										+ ",'Y','N','N','N','N','N',"
+										+ uploadcount
+										+ ")";
+	
+							} else {
+	
+								query = "Update MAIN_FILE_UPLOAD_DTLS set FILE_COUNT ='"
+										+ uploadcount
+										+ "'  WHERE to_char(filedate,'dd/mm/yyyy') = to_char(to_date('"
+										+ setupBean.getFileDate()
+										+ "','dd/mm/yyyy'),'dd/mm/yyyy') "
+										+ " AND CATEGORY = '"
+										+ bean.getCategory()
+										+ "' AND FileId = "
+										+ bean.getInFileId()
+										+ " ";
+	
+							}
+					}
+				}else {
+					
+					 query="Update MAIN_FILE_UPLOAD_DTLS set UPLOAD_FLAG ='Y'  WHERE to_char(filedate,'dd/mm/yyyy') = to_char(to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy'),'dd/mm/yyyy') "
+							+ " AND CATEGORY = '"+bean.getCategory()+"' AND FileId = "+bean.getInFileId()+" "; 
+				}
+			
+			
+		}
+		
+		logger.info("query=="+query);
+		
+		try{
+			
+			getJdbcTemplate().update(query);
+			
+			
+			count++; 
+			
+			logger.info("***** CompareConfigDaoImpl.updatefile End ****");
+			
+		}catch(Exception ex){
+			
+			demo.logSQLException(ex, "CompareConfigDaoImpl.updatefile");
+			logger.error(" error in CompareConfigDaoImpl.updatefile", new Exception("CompareConfigDaoImpl.updatefile",ex));
+			return false;
+		}
+		
+		}
+		
+		if(count>0) {
+			
+			return true;
+		} else {
+			
+			return false;
+		}
+		
+		
+		
+	}
+	
+	@Override
+	public String chkFlag(String flag, CompareSetupBean setupBean) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.chkFlag Start ****");
+		
+			String flg = "";
+			
+			try{
+			
+			String query="SELECT "+flag+" FROM MAIN_FILE_UPLOAD_DTLS WHERE to_char(filedate,'dd/mm/yyyy') = to_char(to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy'),'dd/mm/yyyy')  "
+					+ " AND CATEGORY = '"+setupBean.getCategory()+"' AND FileId = "+setupBean.getInFileId()+"  "; 
+			
+			if(setupBean.getStSubCategory()!=null && !(setupBean.getStSubCategory().equals(""))){
+				
+				query= query+ " AND FILE_SUBCATEGORY = '"+setupBean.getStSubCategory()+"' ";
+				
+			}
+			
+			//logger.info(query);
+			
+			query = " SELECT CASE WHEN exists ("+ query+") then ("+query+") else 'N' end as FLAG from dual"; 
+			
+			logger.info("query == "+query);
+			
+			
+			
+			flg = getJdbcTemplate().queryForObject(query, String.class);
+			
+			logger.info("***** CompareConfigDaoImpl.chkFlag End ****");
+			}catch(Exception e){
+				demo.logSQLException(e, "CompareConfigDaoImpl.chkFlag");
+				 logger.error(" error in CompareConfigDaoImpl.chkFlag ", new Exception("CompareConfigDaoImpl.chkFlag ",e));
+				 throw e;
+			}
+				return flg;
+		
+	}
+	
+	@Override
+	public boolean updateFlag(String flag, CompareSetupBean setupBean) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.updateFlag Start ****");
+		//MODIFIED BY INT5779
+		/*String query="Update MAIN_FILE_UPLOAD_DTLS set "+flag+" ='Y'  WHERE to_char(filedate,'dd/mm/yyyy') = to_char(to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy'),'dd/mm/yyyy') "
+				+ " AND CATEGORY = '"+setupBean.getCategory()+"' AND FileId = "+setupBean.getInFileId()+" AND FILE_SUBCATEGORY = '"+setupBean.getStSubCategory()+"' "; 
+		*/
+		try{
+		String query="Update MAIN_FILE_UPLOAD_DTLS set "+flag+" ='Y'  WHERE to_char(filedate,'dd/mm/yyyy') = to_char(to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy'),'dd/mm/yyyy') "
+				+" AND FileId = "+setupBean.getInFileId();
+		logger.info("query=="+query);
+		
+		int rowupdate =  getJdbcTemplate().update(query);
+		logger.info("rowupdate=="+rowupdate);
+		logger.info("***** CompareConfigDaoImpl.updateFlag End ****");
+	
+		
+		if(rowupdate>0) {
+			
+			
+			return true;
+			
+		}else{
+			
+			return false;
+		}
+		
+		}catch(Exception e){
+			demo.logSQLException(e, "CompareConfigDaoImpl.updateFlag");
+			logger.error(" error in CompareConfigDaoImpl.updateFlag", new Exception("CompareConfigDaoImpl.updateFlag",e));
+			throw e;
+		}
+	
+	}
+
+	
+	
+
+	@SuppressWarnings("resource")
+	@Override
+	public boolean validateFile(CompareSetupBean setupBean,MultipartFile file) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.validateFile Start ****");
+		File readFile;
+		FileInputStream fis;
+
+		try {
+			readFile = setupBean.getDataFile();
+
+			fis = new FileInputStream("\\\\10.144.143.191\\led\\DCRS\\test"+ File.separator +file+".txt");
+
+			int count = 0;
+
+			BufferedReader br = new BufferedReader(new InputStreamReader(fis));
+			String thisline;
+
+			while ((thisline = br.readLine()) != null) {
+
+				if (count == 0 && setupBean.getStFileName().equalsIgnoreCase("SWITCH")) {
+					
+					
+					
+					String[] splitarray = null;
+
+					splitarray = thisline.split(Pattern.quote("|"));
+					
+				String seperator =	getJdbcTemplate().queryForObject("SELECT Dataseparator FROM main_filesource WHERE fileid="+setupBean.getInFileId()+" ", String.class);
+				logger.info("seperator=="+seperator);
+				
+				return chkfiledetails(splitarray,seperator,setupBean);
+
+				}if(count==1 && (setupBean.getStFileName().equalsIgnoreCase("CBS"))) {
+					
+					
+					String[] splitarray = null;
+
+					splitarray = thisline.split(Pattern.quote("|"));
+					
+				String seperator =	getJdbcTemplate().queryForObject("SELECT Dataseparator FROM main_filesource WHERE fileid="+setupBean.getInFileId()+" ", String.class);
+				logger.info("seperator=="+seperator);
+				
+				return chkfiledetails(splitarray,seperator,setupBean);
+					
+					
+				}if(count==1 && setupBean.getStFileName().equals("MANUALCBS")){
+					
+					String[] splitarray = null;
+
+					splitarray = thisline.split(Pattern.quote("|"));
+					
+				String seperator =	getJdbcTemplate().queryForObject("SELECT Dataseparator FROM main_filesource WHERE fileid="+setupBean.getInFileId()+" ", String.class);
+				logger.info("seperator=="+seperator);
+				
+				return chkfiledetails(splitarray,seperator,setupBean);
+					
+				}
+				
+				count=count+1;
+
+			}
+			logger.info("***** CompareConfigDaoImpl.validateFile End ****");
+			
+		} catch (Exception ex) {
+
+			logger.error(" error in CompareConfigDaoImpl.validateFile", new Exception("CompareConfigDaoImpl.validateFile",ex));
+			throw ex;
+		}
+
+		return false;
+	}
+	
+	
+	public boolean chkfiledetails(String[]splitArray,String seperator,CompareSetupBean setupBean){
+		logger.info("***** CompareConfigDaoImpl.chkfiledetails Start ****");
+		int acceptorName=0;
+		boolean result= false;
+		
+		if (setupBean.getStFileName().equalsIgnoreCase("SWITCH")) {
+			
+			if(splitArray[0].trim().length()==3 ||splitArray[1].trim().length()==16){
+				
+				String sql ="SELECT count(*) FROM  SWITCH_RAWDATA "
+						+ " WHERE amount ='"+splitArray[7]+"' AND respcode = '"+splitArray[9]+"' "
+								+ " AND pan ='"+splitArray[1]+"'  AND trace ='"+splitArray[6]+"' "
+								+ " AND authnum ='"+splitArray[21]+"'";
+				logger.info("sql=="+sql);
+				
+				acceptorName = getJdbcTemplate().queryForObject(sql, Integer.class);
+				logger.info("acceptorName=="+acceptorName);
+				
+				if(acceptorName==0){
+					
+					result= true;  
+					
+				}else{
+					
+					result = false;
+				}
+				
+			} else {
+				
+				
+				return false;
+			}
+
+		}if (setupBean.getStFileName().equalsIgnoreCase("CBS")) {
+			
+			int len=0;
+			
+			if(setupBean.getFileType().equalsIgnoreCase("MANUAL")){
+				
+				len = splitArray[3].length();
+			}else {
+				
+				len= splitArray[3].trim().length();
+			}
+			
+			if(len == 9){
+				
+				String sql ="SELECT count(*) FROM  CBS_RAWDATA "
+						+ " WHERE TRAN_ID ='"+splitArray[3]+"'";
+				
+				logger.info(sql);
+				
+				 acceptorName = getJdbcTemplate().queryForObject(sql, Integer.class);
+				 logger.info("acceptorName=="+acceptorName);
+				if(acceptorName==0){
+					
+					result= true;  
+					
+				}else{
+					
+					result = false;
+				}
+				
+			} else {
+				
+				
+				return false;
+			}
+
+		} if(setupBean.getStFileName().equals("MANUALCBS")){
+			
+
+			
+			if(splitArray[3].length()==9){
+				
+				String sql ="SELECT count(*) FROM  cbs_Data "
+						+ " WHERE TRAN_ID ='"+splitArray[3]+"'";
+				
+				logger.info(sql);
+				
+				 acceptorName = getJdbcTemplate().queryForObject(sql, Integer.class);
+				 logger.info("acceptorName=="+acceptorName);
+				if(acceptorName==0){
+					
+					result= true;  
+					
+				}else{
+					
+					result = false;
+				}
+				
+			} else {
+				
+				
+				return false;
+			}
+
+		
+		}
+		logger.info("***** CompareConfigDaoImpl.chkfiledetails End ****");
+		
+		return result;
+		
+		
+		
+		
+	}
+
+	@Override
+	public List<CompareSetupBean> getlastUploadDetails() throws Exception {
+		logger.info("***** CompareConfigDaoImpl.getlastUploadDetails Start ****");
+		ArrayList<CompareSetupBean> setupBeans =null;
+		try{
+		
+			String query= "SELECT filesrc.fileName as stFileName,to_char(filedate,'dd/mm/yy') as filedate,filter_Flag ,	knockoff_Flag , comapre_Flag , manualcompare_Flag , upload_Flag ,manupload_flag,"
+					+ " updlodby as createdBy,category,filesrc.file_subcategory as stSubCategory,to_char(uploaddate,'dd/mm/yy') as entry_date "
+					+ "	FROM MAIN_FILE_UPLOAD_DTLS  uplddtls "
+					+ " INNER JOIN  MAIN_FILESOURCE filesrc ON  filesrc.fileId = uplddtls.fileid ORDER BY TO_DATE(FILEDATE,'DD/MM/YYYY')";
+			
+			
+			logger.info(query);
+			
+			setupBeans = (ArrayList<CompareSetupBean>) getJdbcTemplate().query(query, new BeanPropertyRowMapper(CompareSetupBean.class)) ;
+			logger.info("***** CompareConfigDaoImpl.getlastUploadDetails End ****");
+			
+		}catch(Exception ex) {
+			demo.logSQLException(ex, "CompareConfigDaoImpl.getlastUploadDetails");
+			logger.error(" error in CompareConfigDaoImpl.getlastUploadDetails ", new Exception("CompareConfigDaoImpl.getlastUploadDetails ",ex));
+			throw ex;
+		}
+		
+		
+		
+		return setupBeans;
+	}
+	
+	public boolean CheckAlreadyProcessed(CompareSetupBean setupBean) throws Exception
+	{
+		logger.info("***** CompareConfigDaoImpl.CheckAlreadyProcessed Start ****");
+		int file1=0,file2=0;
+		try
+		{
+			//check for already processed
+			String query = "SELECT count(*) FROM main_File_upload_dtls where MANUALCOMPARE_FLAG = 'Y' AND UPLOAD_FLAG = 'Y'  AND Fileid="+setupBean.getCompareFile1()+" AND to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"' ";
+			logger.info(query);
+			file1 = getJdbcTemplate().queryForObject(query, Integer.class);
+
+			query = "SELECT count(*) FROM main_File_upload_dtls where MANUALCOMPARE_FLAG = 'Y' AND MANUPLOAD_FLAG= 'Y'  AND Fileid="+setupBean.getCompareFile2()+" AND to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"' ";
+			logger.info(query);
+			file2 = getJdbcTemplate().queryForObject(query, Integer.class);	
+			
+			logger.info("***** CompareConfigDaoImpl.CheckAlreadyProcessed End ****");
+			
+			if(file1 != 0|| file2 != 0)
+			{
+				return true;
+			}
+			else return false;
+		}
+		catch(Exception e)
+		{
+			demo.logSQLException(e, "CompareConfigDaoImpl.CheckAlreadyProcessed");
+			logger.error(" error in CompareConfigDaoImpl.CheckAlreadyProcessed ", new Exception("CompareConfigDaoImpl.CheckAlreadyProcessed ",e));
+		
+			return false;
+		}
+	}
+
+	@Override
+	public boolean chkCompareFiles(CompareSetupBean setupBean) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.chkCompareFiles Start ****");
+		boolean result= false;
+		try{
+			
+			int file1=0,file2=0;
+			boolean alreadyProcessed = false;
+			if(setupBean.getCompareLvl().equals("2")){
+				
+				
+					
+				
+			String query = "SELECT count(*) FROM main_File_upload_dtls where MANUALCOMPARE_FLAG = 'N' AND UPLOAD_FLAG = 'Y'  AND Fileid="+setupBean.getCompareFile1()+" AND to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"' ";
+			logger.info(query);
+			file1 = getJdbcTemplate().queryForObject(query, Integer.class);
+			
+			query = "SELECT count(*) FROM main_File_upload_dtls where MANUALCOMPARE_FLAG = 'N' AND MANUPLOAD_FLAG= 'Y'  AND Fileid="+setupBean.getCompareFile2()+" AND to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"' ";
+			logger.info(query);
+			file2 = getJdbcTemplate().queryForObject(query, Integer.class);
+			
+			
+			logger.info("***** CompareConfigDaoImpl.chkCompareFiles End ****");
+			
+			if(file1==0||file2==0) {
+				
+				result=false;
+			}else {
+				
+				result = true;
+			}
+				
+			}
+		
+		}catch(Exception ex) {
+			demo.logSQLException(ex, "CompareConfigDaoImpl.chkCompareFiles");
+			logger.error(" error in CompareConfigDaoImpl.chkCompareFiles ", new Exception("CompareConfigDaoImpl.chkCompareFiles ",ex));
+			throw ex;
+		}
+		
+		return result;
+	}
+
+	@Override
+	public String getTableName(int Fileid) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.getTableName Start ****");
+		String tablename="";
+		try{
+			
+			String query = "Select tablename from main_filesource where fileid="+Fileid+"";
+			tablename =getJdbcTemplate().queryForObject(query, String.class);
+			
+			logger.info("query"+query);
+			logger.info("tablename"+tablename);
+			logger.info("***** CompareConfigDaoImpl.getTableName End ****");
+			
+			return tablename;
+			
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.getTableName");
+			logger.error(" error in CompareConfigDaoImpl.getTableName ", new Exception("CompareConfigDaoImpl.getTableName ",ex));
+			return null;
+		}
+		
+		
+	}
+
+	@Override
+	public boolean validate_File(String Filedate,CompareSetupBean setupBean) throws Exception{
+		logger.info("***** CompareConfigDoImpl.validate_File Start ****");
+		PreparedStatement ps = null;
+		ResultSet rs;
+		int count=0;
+		try{
+			
+			//CHECKING RECORDS FOR PREVIOUS DAY
+			String prevData = "select count(*) from SWITCH_data where TO_CHAR(createddate,'DD/MM/YYYY') = TO_CHAR(sysdate-1,'DD/MM/YYYY')";
+			logger.info("prevData=="+prevData);
+			//CHECKING WHETHER ANY DATA IS PRESENT
+			String tablename = getJdbcTemplate().queryForObject( "select tablename from MAIN_FILESOURCE where FILEID = "+setupBean.getInFileId(),String.class);
+			logger.info("tablename=="+tablename);
+			
+			String chkData ="select count(*) from "+tablename+" where TO_CHAR(CREATEDDATE,'DD/MM/YYYY') < TO_CHAR(sysdate,'DD/MM/YYYY')";
+			
+			logger.info(chkData);
+			
+			int dataCount = getJdbcTemplate().queryForObject(chkData, Integer.class); 
+			logger.info("dataCount=="+dataCount);
+			
+			if(dataCount>0){
+			
+			
+				String query = "SELECT count (*) FROM MAIN_FILE_UPLOAD_DTLS WHERE (TRUNC (filedate)) = (TRUNC (TO_DATE ('"+Filedate+"', 'dd/mm/yyyy') - 1) ) "
+						+ "	AND Fileid ="+setupBean.getInFileId()+" AND category='ONUS' "
+						+ " AND FILTER_FLAG='Y' AND KNOCKOFF_FLAG='Y' AND COMAPRE_FLAG='Y' "
+						+ " AND UPLOAD_FLAG='Y'  ";
+				count = getJdbcTemplate().queryForObject(query, Integer.class); 
+				
+				logger.info("query=="+query);
+				logger.info("count=="+count);
+				
+				logger.info("***** CompareConfigDoImpl.validate_File End ****");
+				//rs=ps.executeQuery();
+				if(count>0){
+					
+					return true;
+				}else {
+					return false;
+				}
+			}else{
+				
+				return true;
+			}
+			
+		
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.validate_File");
+			logger.error(" error in CompareConfigDoImpl.validate_File", new Exception("CompareConfigDoImpl.validate_File",ex));
+			return false;
+		}
+		
+	}
+
+	@Override
+	public boolean saveManCompareDetails(ManualCompareBean manualCompareBean ) throws Exception {
+		logger.info("***** CompareConfigDaoImpl.saveManCompareDetails Start ****");
+		
+		setTransactionManager();
+		TransactionDefinition definition = new DefaultTransactionDefinition();
+		TransactionStatus status = transactionManager.getTransaction(definition);
+		List<ManualFileColumnDtls> columnDtls = new ArrayList<ManualFileColumnDtls>();
+		List<ManualCompareBean> comp_dtl_list =new ArrayList<ManualCompareBean>();
+		
+		columnDtls = manualCompareBean.getColumnDtls();
+		comp_dtl_list =manualCompareBean.getComp_dtl_list();
+		
+		try {
+			
+			manmatchcount = getJdbcTemplate().queryForObject("select (count (MAN_ID))+1 from MAIN_MANUAL_MASTER where category='"+manualCompareBean.getCategory()+"'", Integer.class);
+			logger.info("manmatchcount=="+manmatchcount);
+			
+			insertMAIN_MANUAL_MASTER(comp_dtl_list,manualCompareBean);
+			insertMAIN_MANUAL_CONDITION(columnDtls,manualCompareBean);
+			
+			logger.info("***** CompareConfigDaoImpl.saveManCompareDetails End ****");
+			return true;
+			
+		}catch(Exception ex){
+			demo.logSQLException(ex, "CompareConfigDaoImpl.saveManCompareDetails");
+			logger.error(" error in CompareConfigDoImpl.saveManCompareDetails", new Exception("CompareConfigDoImpl.saveManCompareDetails",ex));
+			return false;
+		}
+		
+		
+		
+	
+	}
+
+	private void insertMAIN_MANUAL_CONDITION(List<ManualFileColumnDtls> columnDtls,	ManualCompareBean manualCompareBean) {
+		logger.info("***** CompareConfigDaoImpl.insertMAIN_MANUAL_CONDITION Start ****");
+		int compid=1;
+
+		for(ManualFileColumnDtls filedtls:columnDtls) {
+			
+	if(filedtls.getFileColumn1()!= null){
+		
+				if(!(filedtls.getFileColumn1().equals("0"))){
+			
+					getJdbcTemplate().update("Insert into MAIN_MANUAL_CONDITION (Man_Id,Category,Ref_File_Id,Comp_Id,File_Header,Padding,Start_Charposition,Charsize,Entry_By,Entry_Dt)"
+					+ "values ("+manmatchcount+",'"+manualCompareBean.getCategory()+"',"+manualCompareBean.getCategory()+","+compid+",'"+filedtls.getFileColumn1()+"',"
+							+ "'"+filedtls.getStPadding()+"','"+filedtls.getInStart_Char_Position()+"',"+filedtls.getInEnd_char_position()+",'"+manualCompareBean.getEntryBy()+"',sysdate)");
+		
+					logger.info("Insert into MAIN_MANUAL_CONDITION (Man_Id,Category,Ref_File_Id,Comp_Id,File_Header,Padding,Start_Charposition,Charsize,Entry_By,Entry_Dt)"
+					+ "values ("+manmatchcount+",'"+manualCompareBean.getCategory()+"',"+manualCompareBean.getCategory()+","+compid+",'"+filedtls.getFileColumn1()+"',"
+							+ "'"+filedtls.getStPadding()+"','"+filedtls.getInStart_Char_Position()+"',"+filedtls.getInEnd_char_position()+",'"+manualCompareBean.getEntryBy()+"',sysdate)");
+			} if(!(filedtls.getFileColumn2().equals("0"))) {
+				
+				getJdbcTemplate().update("Insert into MAIN_MANUAL_CONDITION (Man_Id,Category,Ref_File_Id,Comp_Id,File_Header,Padding,Start_Charposition,Charsize,Entry_By,Entry_Dt)"
+				+ "values ("+manmatchcount+",'"+manualCompareBean.getCategory()+"',"+manualCompareBean.getMan_File()+","+compid+",'"+filedtls.getFileColumn2()+"',"
+						+ "'"+filedtls.getStPadding()+"','"+filedtls.getInStart_Char_Position2()+"',"+filedtls.getInEnd_char_position2()+",'"+manualCompareBean.getEntryBy()+"',sysdate)");
+	
+			}
+			
+				compid++;
+			}
+		}
+		logger.info("***** CompareConfigDaoImpl.insertMAIN_MANUAL_CONDITION End ****");
+		
+	}
+
+	private void insertMAIN_MANUAL_MASTER(List<ManualCompareBean> comp_dtl_list,ManualCompareBean manualCompareBean) {
+	
+		logger.info("***** CompareConfigDaoImpl.insertMAIN_MANUAL_MASTER Start ****");
+	for(ManualCompareBean filedtls:comp_dtl_list) {
+			
+		if(filedtls.getRefFileId()!=null){
+				if(!(filedtls.getRefFileId().equals("0"))){
+			
+					getJdbcTemplate().update("Insert into MAIN_MANUAL_MASTER (MAN_ID,CATEGORY,REF_FILE_ID,FILE_HEADER,SEARCH_PATTERN,PADDING,START_CHARPOSITION,CHARSIZE,CONDITION,ENTRY_BY,ENTRY_DT)"
+					+ "values ("+manmatchcount+",'"+manualCompareBean.getCategory()+"',"+filedtls.getRefFileId()+",'"+filedtls.getRefFileHdr()+"','"+filedtls.getStSearch_Pattern()+"'"
+							+ ",'"+filedtls.getStPadding()+"','"+filedtls.getStChar_Pos()+"',"+filedtls.getStChar_Size()+",'"+filedtls.getCondition()+"','"+manualCompareBean.getEntryBy()+"',sysdate)");
+		
+			} 
+		
+		}
+	
+		}
+	logger.info("***** CompareConfigDaoImpl.insertMAIN_MANUAL_MASTER End ****");
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public List<CompareSetupBean> getFileList(String category) {
+		
+		List<CompareSetupBean> beans =null;
+		String query="Select fileid as inFileId, filename as stFileName,REC_SET_ID "
+				+ " FROM MAIN_FILESOURCE inner join MAIN_RECONSETUPDETAILS on REC_CATEGORY = FILE_CATEGORY where FILE_CATEGORY='"+category+"'";
+		
+		
+		
+		logger.info(query);
+		beans = (ArrayList<CompareSetupBean>)getJdbcTemplate().query(query, new BeanPropertyRowMapper(CompareSetupBean.class));
+		return beans;
+	}
+
+	@Override
+	public String chkUploadFlag(String flag, CompareSetupBean setupBean) {
+	
+		logger.info("***** CompareConfigDaoImpl.chkUploadFlag Start ****");
+			String flg = "";
+			try{
+			if(setupBean.getFilename().equals("NFS")||setupBean.getFilename().equals("RUPAY")) {
+				
+				String  getupld_count = "Select case when FILE_COUNT is null then 0 else file_count end as file_count from main_file_upload_dtls where CATEGORY ='"+setupBean.getCategory()+"'  and FILE_SUBCATEGORY = '"+setupBean.getStSubCategory()+"' "
+						+ "and FileId in(Select fileid from main_filesource where filename='"+setupBean.getFilename()+"' AND FILE_SUBCATEGORY = '"+setupBean.getStSubCategory()+"') "
+						+ "and  filedate = to_date('"+setupBean.getFileDate()+"','dd/mm/yyyy')  ";				
+				logger.info(getupld_count);
+				
+				getupld_count = " SELECT CASE WHEN exists ("+ getupld_count+") then ("+getupld_count+") else 0 end as FLAG from dual";
+				logger.info(getupld_count);
+				
+				uploadcount = getJdbcTemplate().queryForObject(getupld_count, Integer.class);
+				logger.info("uploadcount=="+uploadcount);
+				
+				String getFile_count = "Select FILE_COUNT from Main_fileSource where FILE_CATEGORY ='"+setupBean.getCategory()+"' and filename='"+setupBean.getFilename()+"'  and FILE_SUBCATEGORY = '"+setupBean.getStSubCategory()+"' ";
+				logger.info("getFile_count=="+getFile_count);
+				
+				filecount = getJdbcTemplate().queryForObject(getFile_count, Integer.class);
+				logger.info("filecount=="+filecount);
+				
+				if(filecount==uploadcount) {
+					
+					return"Y";
+				} else {
+					
+					return"N";
+				}
+			}
+			
+			String query="SELECT distinct "+flag+" FROM MAIN_FILE_UPLOAD_DTLS WHERE to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"'  "
+					
+					+ " AND FileId in(Select fileid from main_filesource where filename='"+setupBean.getFilename()+"' ";
+			
+			if(!setupBean.getStSubCategory().equals("-")) {
+				query=query+ " AND FILE_SUBCATEGORY = '"+setupBean.getStSubCategory()+"' )"; 
+			} else {
+				
+				if(!setupBean.getCategory().isEmpty()) {
+					
+					query=query+ " ) AND CATEGORY = '"+setupBean.getCategory()+"' ";
+				} else {
+				query=query+" )";
+				}
+				
+				
+			}
+			
+			
+			//logger.info(query);
+			
+			query = " SELECT CASE WHEN exists ("+ query+") then ("+query+") else 'N' end as FLAG from dual"; 			
+			logger.info("query=="+query);					
+			
+			flg = getJdbcTemplate().queryForObject(query, String.class);
+			logger.info("flg=="+flg);
+			
+			logger.info("***** CompareConfigDaoImpl.chkUploadFlag End ****");
+			
+				return flg;
+				
+			} catch (Exception e) {
+				logger.error(" error in CompareConfigDaoImpl.chkUploadFlag", new Exception("CompareConfigDaoImpl.chkUploadFlag",e));
+				throw e;
+			}
+	}
+
+	@Override
+	public int getrecordcount(CompareSetupBean setupBean) {
+		logger.info("***** CompareConfigDaoImpl.getrecordcount Start ****");
+		FileSourceBean sourceBean;
+		String query = "SELECT distinct tableName FROM main_Filesource filesrc "
+				+ " WHERE (filesrc.FILENAME='"+setupBean.getFilename()+"') ";// or filesrc.FILENAME like '%SUR%'
+		
+		if( !setupBean.getFilename().equals("SWITCH")) {
+			
+			if(setupBean.getStSubCategory().equalsIgnoreCase("CARDTOCARD"))
+			{
+				query = query + " and filesrc.FILE_CATEGORY ='"+setupBean.getStSubCategory()+"' ";
+			}else{
+				
+				if(setupBean.getFilename().equals("VISA")) {
+					
+					query = query + " and filesrc.FILE_SUBCATEGORY ='ISSUER' ";
+				}else {
+					
+					query = query + " and filesrc.FILE_SUBCATEGORY ='"+setupBean.getStSubCategory()+"' ";
+				}
+			}
+			if(setupBean.getStSubCategory().equals("-") && setupBean.getFilename().equals("CBS")) {
+				
+				query = query + " and  filesrc.FILE_CATEGORY ='ONUS'";
+			}
+			else if(setupBean.getStSubCategory().equals("ISSUER") && setupBean.getFilename().equals("CBS")) {
+				
+				query = query + " and  filesrc.FILE_CATEGORY ='VISA'";
+			}else if(setupBean.getStSubCategory().equals("ACQUIRER") && setupBean.getFilename().equals("CBS")) {
+				
+				query = query + " and  filesrc.FILE_CATEGORY ='NFS'";
+			}
+			
+		} 
+		
+		
+		logger.info("query=="+query);
+		String tablename = "";
+		tablename = getJdbcTemplate().queryForObject(query, String.class);
+		logger.info("tablename=="+tablename);
+		int count=0;
+		if(setupBean.getCategory().equalsIgnoreCase("CARDTOCARD"))
+		{
+			
+			count= getJdbcTemplate().queryForObject("Select  count(*) from "+tablename+" where to_char(filedate,'mm/dd/yyyy') = '"+setupBean.getFileDate()+"' and to_char(createdon,'mm/dd/yyyy') = to_char(sysdate,'mm/dd/yyyy')   ",
+					 Integer.class);
+		}else if(setupBean.getStSubCategory().equalsIgnoreCase("CARDTOCARD")){
+			
+			count= getJdbcTemplate().queryForObject("Select  count(*) from "+tablename+" where to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"' and to_char(to_date(createddate,'dd-MON-yy'),'mm/dd/yyyy') = to_char(sysdate,'mm/dd/yyyy')   ",
+					 Integer.class);
+		}
+		else if(setupBean.getCategory().equalsIgnoreCase("MASTERCARD")){
+			
+			count= getJdbcTemplate().queryForObject("Select  count(*) from "+tablename+" where to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"'",
+					 Integer.class);
+		}
+		else{
+		count= getJdbcTemplate().queryForObject("Select  count(*) from "+tablename+" where to_char(filedate,'dd/mm/yyyy') = '"+setupBean.getFileDate()+"' and to_char(createddate,'dd/mm/yyyy') = to_char(sysdate,'dd/mm/yyyy')   ",
+				 Integer.class);
+		}
+		logger.info("count=="+count);
+		
+		logger.info("***** CompareConfigDaoImpl.getrecordcount End ****");
+		
+		return count;
+		
+		
+	}
+	
+
+	
+}

@@ -1,0 +1,301 @@
+ <!DOCTYPE tiles-definitions PUBLIC
+"-//Apache Software Foundation//DTD Tiles Configuration 2.0//EN "
+"http://tiles.apache.org/dtds/tiles-config_2_0.dtd">
+<tiles-definitions>
+
+ 	<definition name="baseLayout" template="/WEB-INF/bootstrapJsp/payroll.jsp">
+		<put-attribute name="title" value="" />
+		<put-attribute name="header" value="/WEB-INF/bootstrapJsp/header.jsp" />
+		<put-attribute name="sidebar" value="/WEB-INF/bootstrapJsp/SideBar.jsp" />
+		 <put-attribute name="footer" value="/WEB-INF/bootstrapJsp/footer.jsp" /> 
+	</definition> 
+
+	 <definition name="Menu" extends="baseLayout">
+		<put-attribute name="title" value="MAIN MENU" />
+		<put-attribute name="header" value="/WEB-INF/bootstrapJsp/header.jsp" />
+		<put-attribute name="sidebar" value="/WEB-INF/bootstrapJsp/SideBar.jsp" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/UserHome.jsp" />
+		<put-attribute name="footer" value="/WEB-INF/bootstrapJsp/footer.jsp" />
+	</definition>
+
+	<definition name="ConfigurationMenu" extends="baseLayout">
+		<put-attribute name="title" value="Configuration Menu" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+
+	<definition name="AdminMenu" extends="baseLayout">
+		<put-attribute name="title" value="Employee Roles" />
+		<put-attribute name="header" value="/WEB-INF/jsp/AdminMenu.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	<definition name="FileSource" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/FileSource.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	
+	
+	<definition name="MenuConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="Menu Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	
+	<definition name="CompareMenu" extends="baseLayout">
+		<put-attribute name="title" value="Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+	</definition>
+	
+	<definition name="DisputeMenu" extends="baseLayout">
+		<put-attribute name="title" value="Dispute" />
+		<put-attribute name="header" value="/WEB-INF/jsp/DisputeMenu.jsp" />
+	</definition>
+	
+	
+	<definition name="SettlementMenu" extends="baseLayout">
+		<put-attribute name="title" value="Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+	</definition>
+	<definition name="DownloadReports" extends="baseLayout">
+		<put-attribute name="title" value="Download Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/DownloadReports.jsp" />
+	</definition>
+	<definition name="Master_chargebk" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/Master_chargebk.jsp" />
+	</definition>
+	<definition name="NetworkFileUpdate" extends="baseLayout">
+		<put-attribute name="title" value="Network File Update" />
+		<put-attribute name="header" value="/WEB-INF/jsp/NetworkFileUpdate.jsp" />
+	</definition>
+	
+	<definition name="ReconStatus" extends="baseLayout">
+		<put-attribute name="title" value="Recon Process" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconStatus.jsp" />		
+	</definition>
+		<definition name="ForceMatch" extends="baseLayout">
+		<put-attribute name="title" value="Force Match" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/forceMatch.jsp" />		
+	</definition>
+	
+	<!-- Administration Definitions -->
+	<definition name="UserManager" extends="baseLayout">
+		<put-attribute name="title" value="User Manager" />
+		<!-- <put-attribute name="header" value="/WEB-INF/jsp/AdminMenu.jsp" /> -->
+		<put-attribute name="body" value="/WEB-INF/jsp/UserManager.jsp" />
+	
+	</definition>
+
+	<definition name="RoleManager" extends="baseLayout">
+		<put-attribute name="title" value="Role Manager" />
+		<put-attribute name="body" value="/WEB-INF/jsp/RoleManager.jsp" />
+	</definition>
+	<definition name="Configuration" extends="baseLayout">
+		<put-attribute name="title" value="Configuration File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		 <put-attribute name="body" value="/WEB-INF/jsp/Configuration.jsp" /> 
+	</definition>
+	
+	
+	<definition name="FileConfiguration" extends="baseLayout">
+		<put-attribute name="title" value="Configuration File" />
+		 <put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" /> 
+		 <put-attribute name="body" value="/WEB-INF/jsp/FileConfiguration.jsp" /> 
+	</definition>
+	
+	
+
+	
+	<definition name="ViewFileSource" extends="baseLayout">
+		<put-attribute name="title" value="View File Details" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewFileSource.jsp" />
+	</definition>
+	
+	<definition name="UpdtFileDetails" extends="baseLayout">
+		<put-attribute name="title" value="Update File Details" />
+		<put-attribute name="header" value="/WEB-INF/jsp/ConfigurationMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UpdtFileDetails.jsp" />		
+	</definition>
+	
+	
+	<definition name="ConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ConfigureType.jsp" />		
+	</definition>
+	<definition name="ViewConfigureType" extends="baseLayout">
+		<put-attribute name="title" value="View Configure Type" />
+		<put-attribute name="header" value="/WEB-INF/jsp/MenuConfigureType.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewConfigureType.jsp" />		
+	</definition>
+	<definition name="CompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="Compare Setup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/CompareSetup.jsp" />		
+	</definition>
+	<definition name="ViewCompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="View CompareSetup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ViewCompareSetup.jsp" />		
+	</definition>
+	<definition name="AutoCompare" extends="baseLayout">
+		<put-attribute name="title" value="Auto Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/AutoCompare.jsp" />		
+	</definition>
+	
+	<definition name="ManualUpload" extends="baseLayout">
+		<put-attribute name="title" value="Manual Upload" />
+		
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualUpload.jsp" />		
+	</definition>
+	
+	
+		<definition name="classifyFile" extends="baseLayout">
+		<put-attribute name="title" value="Classify File" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/classifyFile.jsp" />		
+	</definition>
+	
+	<definition name="ManualCompare" extends="baseLayout">
+		<put-attribute name="title" value="Manual Compare" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualCompare.jsp" />		
+	</definition>
+	
+	
+	<definition name="ReconProcess" extends="baseLayout">
+		<put-attribute name="title" value="Recon Process" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconProcess.jsp" />		
+	</definition>
+	
+	<definition name="SettlementFinalReport" extends="baseLayout">
+		<put-attribute name="title" value="SettlementFinalReport" />
+		<put-attribute name="body" value="/WEB-INF/jsp/settlementFinalReport.jsp" />		
+	</definition>
+	
+	<!-- GlBalance -->
+	
+	<definition name="GlBalance" extends="baseLayout">
+		<put-attribute name="title" value="GlBalance" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GlBalance.jsp" />		
+	</definition>
+	
+	<definition name="ManualCompareSetup" extends="baseLayout">
+		<put-attribute name="title" value="Manual Compare setup" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualCompareSetup.jsp" />
+	</definition>
+	
+	
+	<definition name="ManualFile" extends="baseLayout">
+		<put-attribute name="title" value="Manual File Process" />
+		<put-attribute name="header" value="/WEB-INF/jsp/CompareMenu.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ManualFile.jsp" />		
+	</definition>
+	
+	
+	
+	<definition name="ReconSettlement" extends="baseLayout">
+		<put-attribute name="title" value="Recon Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ReconSettlement.jsp" />		
+	</definition>
+	
+	<definition name="UNReconSettlement" extends="baseLayout">
+		<put-attribute name="title" value="UNRecon Settlement" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UNReconSettlement.jsp" />		
+	</definition>
+	
+	<definition name="GenerateTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Generate TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/GenerateTTUM.jsp" />
+	</definition>
+	
+	<definition name="UploadTTUM" extends="baseLayout">
+		<put-attribute name="title" value="Upload TTUM" />
+		<put-attribute name="body" value="/WEB-INF/jsp/UploadTTUM.jsp" />
+	</definition>
+	
+	<definition name="raisechargeback" extends="baseLayout">
+		<put-attribute name="title" value="CHARGEBACK" />
+		<put-attribute name="body" value="/WEB-INF/jsp/raisechargeback.jsp" />
+	</definition>
+	
+	
+			<definition name="raisechargebackdownloadmsg" extends="baseLayout">
+		<put-attribute name="title" value="raisechargebackdownloadmsg" />
+		 <put-attribute name="body" value="/WEB-INF/jsp/raisechargebackdownloadmsg.jsp" /> 
+	</definition>
+	
+		<definition name="rupayoffline" extends="baseLayout">
+		<put-attribute name="title" value="RUPAY-OFFLINE" />
+		<put-attribute name="body" value="/WEB-INF/jsp/rupayoffline.jsp" />
+	</definition>
+	
+	
+	
+	
+	<definition name="SearchData" extends="baseLayout">
+		<put-attribute name="title" value="Search Data" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/searchData.jsp" />
+	</definition>
+	
+	
+	<definition name="ProcessedData" extends="baseLayout">
+		<put-attribute name="title" value="Processed Data" />
+		<put-attribute name="header" value="/WEB-INF/jsp/Settlement.jsp" />
+		<put-attribute name="body" value="/WEB-INF/jsp/ProcessedData.jsp" />		
+	</definition>
+	
+	
+	
+	
+	<definition name="Jtable" extends="baseLayout">
+		<put-attribute name="header" value="/WEB-INF/jsp/JtableTest.jsp" />
+		<put-attribute name="body" value="" />
+	</definition>
+	
+	<definition name="NetworkFileUpdate" extends="baseLayout">
+		<put-attribute name="title" value="Download Report" />
+		<put-attribute name="body" value="/WEB-INF/jsp/NetworkFileUpdate.jsp" />
+	</definition>
+	
+	<definition name="invalidBrowser">
+		<put-attribute name="body" value="/WEB-INF/jsp/invalidBrowser.jsp" />		
+	</definition>
+	<!-- <definition name="gridHelp">
+		<put-attribute name="title" value="Grid Help" />
+		<put-attribute name="header" value="/WEB-INF/jsp/gridHelp.jsp" />
+				
+	</definition>
+	 -->
+	 
+	 <definition name="Gl_balancing" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/Gl_balancing.jsp" />
+	</definition>
+
+<definition name="Master_chargebk" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/Master_chargebk.jsp" />
+	</definition>
+	
+	<definition name="ChargeBack" extends="baseLayout">
+		<put-attribute name="title" value="Source File" />
+		<put-attribute name="body" value="/WEB-INF/jsp/chargeback.jsp" />
+	</definition>
+	
+	<definition name="SearchData" extends="baseLayout">
+		<put-attribute name="title" value="Search Data" />
+		<put-attribute name="body" value="/WEB-INF/bootstrapJsp/searchData.jsp" />
+	</definition>
+ 
+</tiles-definitions>

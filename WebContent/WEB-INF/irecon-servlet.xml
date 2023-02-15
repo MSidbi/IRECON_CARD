@@ -1,0 +1,427 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:aop="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/batch
+	http://www.springframework.org/schema/batch/spring-batch-2.2.xsd
+	http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+	http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.2.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+	http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+	http://www.springframework.org/schema/task
+    http://www.springframework.org/schema/task/spring-task-3.2.xsd">
+
+	<context:property-placeholder location = "classpath:log4j.properties,/WEB-INF/jdbc.properties"/>
+
+	<!-- declaring base package -->  
+	<!-- <context:component-scan base-package="com.recon.control,com.recon.control.chargeback, com.recon.dao, com.recon.dao.impl.chargeback,
+	 com.recon.model,com.recon.model.chargeback, com.recon.service, com.recon.service.impl.chargeback" /> -->
+	
+	 <context:component-scan base-package="com.recon.*" />
+
+	<!-- telling container to take care of annotations stuff -->
+	<context:annotation-config />
+
+	<!-- allowing annotation based code -->
+	 <mvc:annotation-driven /> 
+
+	<!-- setting location, for retrieval of resource from WEB-INF folder -->
+	<!-- <mvc:resources mapping="/css/**" location="/WEB-INF/css/"/>
+	<mvc:resources mapping="/images/**" location="/WEB-INF/images/"/>
+	<mvc:resources mapping="/js/**" location="/WEB-INF/js/"/>
+	<mvc:resources mapping="/WebContent/**" location="/WebContent/" />-->
+
+	<!-- bean for implementation of properties file. -->
+	<!-- <bean class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="location">
+				<value>/WEB-INF/jdbc.properties</value>
+		</property>
+	</bean> -->
+	
+
+	
+
+	<!-- binding message properties file -->
+	<bean class="org.springframework.context.support.ResourceBundleMessageSource" id="messageSource">
+		<property name="basename" value="messages" />
+	</bean>
+
+	<!-- adding view resolver to show jsp's using tiles on browser --> 
+	<bean id="viewResolver" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.tiles2.TilesView" />
+	</bean>
+
+	<!-- adding tiles configurer -->
+	<bean id="tilesConfigurer" class="org.springframework.web.servlet.view.tiles2.TilesConfigurer">
+		<property name="definitions">
+			<list>
+				<value>/WEB-INF/tiles.xml</value>
+			</list>
+		</property>
+	</bean>
+
+	<!-- adding additional view resolver to show jsp's on browser --> 
+	<bean id="viewResolver1" class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+		<property name="viewClass" value="org.springframework.web.servlet.view.JstlView" />
+		<property name="prefix" value="/WEB-INF/jsp/" />
+		<property name="suffix" value=".jsp" />
+	</bean>
+	
+	<!--  <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+
+		 setting maximum upload size
+		<property name="maxUploadSize" value="1000000000" />
+	</bean>  -->
+	
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+	<property name="maxUploadSize" value="1000000000"></property>
+	</bean>
+	
+
+	<!-- declaring bean for resolving json data type. -->
+	<bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+		<property name="order" value="2" />
+		<property name="mediaTypes">
+			<map>
+				<entry key="json" value="application/json" />
+			</map>
+		</property>
+		<property name="defaultViews">
+			<list>
+				<!-- JSON View -->
+				<bean class="org.springframework.web.servlet.view.json.MappingJacksonJsonView"></bean>
+			</list>
+		</property>
+		<property name="ignoreAcceptHeader" value="true" />
+	</bean>
+
+	<!-- declaring interceptors -->
+	 <mvc:interceptors>
+		<bean class="com.recon.interceptor.LoginInterceptor" ></bean>
+	</mvc:interceptors>
+
+
+	<!-- declaring bean for resolving excel content -->
+	<bean class="org.springframework.web.servlet.view.XmlViewResolver">
+		<property name="location">
+			<value>/WEB-INF/irecon-excel-views.xml</value>
+		</property>
+		<property name="order" value="1" />
+	</bean>
+
+	<!-- declaring Oracle data source bean -->
+	<bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${jdbc.driverClassName}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+
+	<!-- Creating TransactionManager Bean, since JDBC we are creating of type DataSourceTransactionManager -->
+	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<!-- Enable Annotation based Declarative Transaction Management -->
+	<tx:annotation-driven />
+
+	<!-- declaring informix data source for informix-->
+<!-- 	<bean id="dataSourceI" class="org.springframework.jdbc.datasource.DriverManagerDataSource">
+		<property name="driverClassName" value="${jdbc.driverClassNameI}" />
+		<property name="url" value="${jdbc.urlI}" />
+		<property name="username" value="${jdbc.usernameI}" />
+		<property name="password" value="${jdbc.passwordI}" />
+	</bean>  -->
+
+	<!-- declaring jdbc template -->
+	<bean name="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	
+	<!-- hibernate configuration start -->
+	<!-- <bean
+	class="org.springframework.orm.hibernate3.annotation.AnnotationSessionFactoryBean"
+	id="sessionFactory">
+	<property name="dataSource" ref="dataSource"></property>
+	<property name="annotatedClasses">
+		<list>
+			<value>com.recon.model.MainFilesource</value>
+			<value>com.recon.model.CashnetChargeBack</value>
+			<value>com.recon.model.ChargeBackProcessDtl</value>
+			<value>com.recon.model.CashnetCBKHDR</value>
+			<value>com.recon.model.Cashnet_DCMS</value>
+			<value>com.recon.model.CashnetISSRaw</value>
+			<value>com.recon.model.CashnetISSRaw</value>
+			<value>com.recon.model.CashnetCBKUnmatched</value>
+			<value>com.recon.model.PenaltyMatrix</value>
+			<value>com.recon.model.PenaltyTransaction</value>
+			<value>com.recon.model.CashnetChargebackAcquier</value>
+		</list>
+	</property>
+	<property name="hibernateProperties">
+		<props>
+			<prop key="hibernate.dialect">${hibernate.dialect}</prop>
+			<prop key="hibernate.show_sql">${hibernate.show_sql}</prop>
+			<prop key="hibernate.hbm2ddl.auto">${hibernate.hbm2ddl.auto}  </prop>
+		</props>
+	</property>
+</bean> -->
+
+ <!--  <bean class="org.springframework.orm.hibernate3.HibernateTransactionManager" id="hibernateTransactionManager">
+ <property name="sessionFactory" ref="sessionFactory"></property>
+  </bean> -->
+<!-- hibernate configuration end -->
+
+<!-- <bean name="cashnetChargeBackDAOImpl" class = "com.recon.dao.impl.chargeback.CashnetChargeBackDAOImpl">
+			<property name="dataSource" ref="dataSource" />
+	</bean> -->
+	<!-- <bean id="cashnetChargeBackDAOImpl" class="com.recon.dao.impl.chargeback.CashnetChargeBackDAOImpl">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean> -->
+
+	<!-- bean definition for LoginDaoImpl -->
+	<bean name="loginDaoImpl" class="com.recon.dao.impl.LoginDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean> 
+	
+	<!-- bean definition for NavigationDaoImpl -->
+	<bean name="navigationDaoImpl" class="com.recon.dao.impl.NavigationDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- bean definition for UserDaoImpl -->
+	<bean name="userDaoImpl" class="com.recon.dao.impl.UserDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	 <!-- bean definition for RoleDaoImpl -->
+	<bean name="dataUploadDaoImpl" class="com.recon.dao.impl.DataUploadDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- bean definition for RoleDaoImpl -->
+	<bean name="configurationDaoImpl" class="com.recon.dao.impl.ConfigurationDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+
+	<bean name="fileSourceDaoImpl" class="com.recon.dao.impl.FileSourceDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	
+	<bean name="sourceDAoImpl" class="com.recon.dao.impl.SourceDAoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	<bean name="compareConfigDaoImpl" class="com.recon.dao.impl.CompareConfigDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	<bean name="networkFileUpdateDaoImpl" class="com.recon.dao.impl.NetworkFileUpdateDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	<bean name="settlementDaoImpl" class="com.recon.dao.impl.SettlementDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	
+	<bean name="settlmentDaoImpl" class="com.recon.dao.impl.SettlmentDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<!-- bean definition for Comparison Process  -->
+	<bean name="compareDaoImpl" class="com.recon.dao.impl.CompareDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	
+		<bean name="disputeDaoImpl" class="com.recon.dao.impl.DisputeDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- bean definition for Manual File Process  -->
+	<bean name="manualFileDaoImpl" class="com.recon.dao.impl.ManualFileDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	
+	<bean name="generateTTUMDaoImpl" class="com.recon.dao.impl.GenerateTTUMDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	
+	<bean name="reconProcessDaoImpl" class="com.recon.dao.impl.ReconProcessDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	<bean name="reconStatusDaoImpl" class="com.recon.dao.impl.ReconStatusDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	<bean name="forceMatchDaoImpl" class="com.recon.dao.impl.ForceMatchDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	
+	<bean name="compareRupayDaoImpl" class="com.recon.dao.impl.CompareRupayDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<bean name="manualRupayFileDaoImpl" class="com.recon.dao.impl.ManualRupayFileDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+	
+	<bean name="accountingDaoImpl" class="com.recon.dao.impl.AccountingDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	
+	<bean name="generateRupayTTUMDaoImpl" class="com.recon.dao.impl.GenerateRupayTTUMDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	
+	<bean name="searchDaoImpl" class="com.recon.dao.impl.SearchDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	
+	
+	<!-- 	<bean name="rupayChargeBackDaoImpl" class="com.recon.dao.impl.chargeback.RupayChargeBackDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean> -->
+	
+	
+		<bean name="rupayOfflineUploadDaoImpl" class="com.recon.dao.impl.rupayoffline.RupayOfflineUploadDaoImpl" >
+		<property name="dataSource"  ref="dataSource" />
+	</bean>
+	<!-- <bean name="GlBalanceDaoImpl" class="com.recon.dao.impl.GlBalanceDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>  -->
+	
+	<bean name="glBalanceDaoImpl" class="com.recon.dao.impl.GlBalanceDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- ADDED by INT8624 FOR MANUAL ROLLBACK -->
+	<bean name="manualKnockoffDaoImpl" class="com.recon.dao.impl.ManualKnockoffDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- <bean name="cashnetChargeBackDAOImpl" class="com.recon.dao.impl.CashnetChargeBackDAOImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean> -->
+	
+	<!-- <bean name="cashnetChargeBackDAOImpl" class = "com.recon.dao.impl.chargeback.CashnetChargeBackDAOImpl">
+			<property name="dataSource" ref="dataSource" />
+	</bean>
+	 -->
+	
+	<!-- <bean name="generateTTUMDaoImpl" class="com.recon.dao.impl.GenerateTTUMDaoImpl">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean> -->
+<!-- 	<bean id="runScheduler" class="com.recon.schedular.RunSchedular" />
+
+  Run every 5 seconds
+  <task:scheduled-tasks>
+    
+	<task:scheduled ref="runScheduler" method="run" fixed-delay="5000" />
+   
+	<task:scheduled ref="runScheduler" method="run" cron="*/5000 * * * * *" />
+   </task:scheduled-tasks>
+	 -->
+	 
+	 <!-- ADDED by INT8624 FOR NFS SETTLEMENT UPLOAD-->
+	<bean name="nFSSettlementServiceImpl" class="com.recon.service.impl.NFSSettlementServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- ADDED by INT8624 FOR NFS SETTLEMENT UPLOAD-->
+	<bean name="nFSSettlementCalServiceImpl" class="com.recon.service.impl.NFSSettlementCalServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	<!-- ADDED by INT8624 FOR NFS SETTLEMENT TTUM-->
+	<bean name="nFSSettlementTTUMServiceImpl" class="com.recon.service.impl.NFSSettlementTTUMServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>	
+	<!-- ADDED by INT8624 FOR NFS ADJUSTMENT FILE-->
+	<bean name="adjustmentFileServiceImpl" class="com.recon.service.impl.AdjustmentFileServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>	
+	<!-- ADDED by INT8624 FOR Cashnet FILE-->
+	<bean name="cashnetSettlementServiceImpl" class="com.recon.service.impl.CashnetSettlementServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>	
+	
+	<!-- ADDED by INT8624 FOR refund TTUM-->
+	<bean name="refundTTUMServiceImpl" class="com.recon.service.impl.RefundTTUMServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>	
+	
+	<!-- added by rutuja for RupaySettelementDaoImpl -->
+	<bean name="rupaySettelementDaoImpl" class="com.recon.dao.impl.RupaySettelementDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- added by int8624 for Visa Settlement -->
+	<bean name="visaSettlementServiceImpl" class="com.recon.service.impl.VisaSettlementServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- added by int8624 for Rupay Unmatched TTUM-->
+	<bean name="rupayTTUMServiceImpl" class="com.recon.service.impl.RupayTTUMServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- FISDOM MODULE -->
+	<bean name="fisdomFileUploadServiceImpl" class="com.recon.service.impl.FisdomFileUploadServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean name="fisdomReconServiceImpl" class="com.recon.service.impl.FisdomReconServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- addded by nt8810 -->
+	<bean name="NfSFeeGstServiceImpl" class="com.recon.service.impl.NfSFeeGstServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>	
+	
+		<!-- addded by nt8810 -->
+	<bean name="rupayAdjustntFileUpServiceImpl" class="com.recon.service.impl.RupayAdjustntFileUpServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean name="fisdomAct4ServiceImpl" class="com.recon.service.impl.FisdomAct4ServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean name="eODReportServiceImpl" class="com.recon.service.impl.EODReportServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean name="visaUnmatchTTUMServiceImpl" class="com.recon.service.impl.VisaUnmatchTTUMServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean name="nFSUnmatchTTUMServiceImpl" class="com.recon.service.impl.NFSUnmatchTTUMServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean name="cashnetUnmatchTTUMServiceImpl" class="com.recon.service.impl.CashnetUnmatchTTUMServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean name="rupayUnmatchTTUMServiceImpl" class="com.recon.service.impl.RupayUnmatchTTUMServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean name="settlementRollbackDaoImpl" class="com.recon.dao.impl.SettlementRollbackDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>	
+	
+	<bean name="rawFileRollbackDaoImpl" class="com.recon.dao.impl.RawFileRollbackDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>	
+	
+	<bean name="cashnetGLStatementServiceImpl" class="com.recon.service.impl.CashnetGLStatementServiceImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>	
+	
+	<bean name="dhanalaxmiSettlementDaoImpl" class="com.recon.dao.impl.DhanalaxmiSettlementDaoImpl">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+</beans>	
